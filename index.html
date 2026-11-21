@@ -399,29 +399,42 @@
       loadDateIntoForm(els.logDate.value);
     }
 
+    function extractNumericValue(raw) {
+      if (raw === null || raw === undefined) return "";
+      const firstLine = String(raw).split(/\r?\n/)[0].trim();
+      const match = firstLine.match(/-?\d+(?:\.\d+)?/);
+      return match ? match[0] : "";
+    }
+
     function applyUrlParams() {
       const params = new URLSearchParams(window.location.search);
-      const map = {
-        p: els.pGrams,
-        f: els.fGrams,
-        c: els.cGrams,
-        kcal: els.kcal,
-        wt: els.weight,
-        waist: els.waist,
-        bps: els.bpSys,
-        bpd: els.bpDia,
-        hr: els.hr,
-        act: els.activeKcal,
-        cardio: els.cardioLoad
-      };
+      const paramGroups = [
+        { keys: ["p"], input: els.pGrams },
+        { keys: ["f"], input: els.fGrams },
+        { keys: ["c"], input: els.cGrams },
+        { keys: ["kcal"], input: els.kcal },
+        { keys: ["weight", "wt"], input: els.weight },
+        { keys: ["waist"], input: els.waist },
+        { keys: ["bp_sys", "bps"], input: els.bpSys },
+        { keys: ["bp_dia", "bpd"], input: els.bpDia },
+        { keys: ["hr"], input: els.hr },
+        { keys: ["active_kcal", "act"], input: els.activeKcal },
+        { keys: ["cardio_load", "cardio"], input: els.cardioLoad }
+      ];
+
       let appliedCount = 0;
-      Object.entries(map).forEach(([key, input]) => {
-        const val = params.get(key);
-        if (val !== null && val.trim() !== "") {
-          input.value = val.trim();
-          appliedCount++;
+      paramGroups.forEach(({ keys, input }) => {
+        for (const key of keys) {
+          if (!params.has(key)) continue;
+          const cleaned = extractNumericValue(params.get(key));
+          if (cleaned !== "") {
+            input.value = cleaned;
+            appliedCount++;
+            break;
+          }
         }
       });
+
       els.syncStatus.textContent = appliedCount > 0
         ? `URLから${appliedCount}項目反映`
         : "ローカル保存モード";
