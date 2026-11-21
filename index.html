@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="ヘルスログ" />
-  <title>デイリーヘルスログ</title>
+  <meta name="apple-mobile-web-app-title" content="Code_LiFE" />
+  <title>Code_LiFE</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -100,7 +100,7 @@
 <body>
   <div class="container">
     <div class="row" style="margin-bottom:10px;">
-      <h1>デイリーヘルスログ</h1>
+      <h1>Code_LiFE</h1>
       <span id="syncStatus" class="status">待機中</span>
     </div>
 
@@ -542,7 +542,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `daily-health-logs-${getTodayISO()}.json`;
+      a.download = `code-life-logs-${getTodayISO()}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
