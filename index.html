@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ヘルスログ" />
   <title>デイリーヘルスログ</title>
   <style>
     :root {
@@ -91,6 +94,7 @@
       min-height: 360px;
     }
     .status { font-size: 0.8rem; color: var(--accent); margin-left: auto; }
+    .hint { font-size: 0.76rem; color: var(--muted); margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -189,6 +193,17 @@
       <label for="formattedOutput">整形テキスト（直近7日平均付き・Geminiへ貼り付け可能）</label>
       <textarea id="formattedOutput" class="output" readonly></textarea>
     </div>
+
+    <!-- JSONバックアップ・復元 -->
+    <div class="card">
+      <label>履歴バックアップ（JSON）</label>
+      <div class="grid-2">
+        <button type="button" id="exportJsonBtn">JSONエクスポート</button>
+        <button type="button" id="importJsonBtn">JSONインポート</button>
+      </div>
+      <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;" />
+      <div id="backupInfo" class="hint">保存済み日数: 0日分</div>
+    </div>
   </div>
 
   <script>
@@ -229,7 +244,11 @@
       cardioLoad: document.getElementById("cardioLoad"),
       formattedOutput: document.getElementById("formattedOutput"),
       saveAndCopyBtn: document.getElementById("saveAndCopyBtn"),
-      syncStatus: document.getElementById("syncStatus")
+      syncStatus: document.getElementById("syncStatus"),
+      exportJsonBtn: document.getElementById("exportJsonBtn"),
+      importJsonBtn: document.getElementById("importJsonBtn"),
+      importFileInput: document.getElementById("importFileInput"),
+      backupInfo: document.getElementById("backupInfo")
     };
 
     function getTodayISO() {
@@ -253,6 +272,12 @@
 
     function saveAllLogs(logs) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+      updateBackupInfo(logs);
+    }
+
+    function updateBackupInfo(logs = loadAllLogs()) {
+      const count = Object.keys(logs).length;
+      els.backupInfo.textContent = `保存済み日数: ${count}日分`;
     }
 
     function toNum(val) {
@@ -270,7 +295,6 @@
     }
 
     function build7DaySummary(logs, baseDateStr, currentDayState) {
-      // プレビュー中の現在日データも反映した状態で直近7日分（baseDateStr以前・最大7日）を集計
       const mergedLogs = {
         ...logs,
         [baseDateStr]: currentDayState
@@ -307,7 +331,6 @@
         if (ns !== null) nSys.push(ns);
         if (nd !== null) nDia.push(nd);
 
-        // 体重は夜があれば夜、なければ朝を採用（両方ある場合は両方含めるか優先するか調整可能）
         const wNight = toNum(n.weight);
         const wMorning = toNum(m.weight);
         if (wNight !== null) weights.push(wNight);
@@ -512,6 +535,56 @@
       els.formattedOutput.value = formatLogText(logs, dateStr, day);
     }
 
+    function exportJson() {
+      const logs = loadAllLogs();
+      const jsonStr = JSON.stringify(logs, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `daily-health-logs-${getTodayISO()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      els.syncStatus.textContent = "JSONエクスポート完了";
+    }
+
+    function handleImportFile(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || "{}"));
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+            throw new Error("Invalid format");
+          }
+
+          const currentLogs = loadAllLogs();
+          const mergedLogs = { ...currentLogs };
+          let importedCount = 0;
+
+          Object.entries(parsed).forEach(([dateKey, dayVal]) => {
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateKey) && dayVal && typeof dayVal === "object") {
+              mergedLogs[dateKey] = dayVal;
+              importedCount++;
+            }
+          });
+
+          saveAllLogs(mergedLogs);
+          loadDateIntoForm(els.logDate.value);
+          els.syncStatus.textContent = `${importedCount}日分インポート完了`;
+        } catch {
+          els.syncStatus.textContent = "JSON読込エラー";
+        } finally {
+          event.target.value = "";
+        }
+      };
+      reader.readAsText(file);
+    }
+
     els.saveAndCopyBtn.addEventListener("click", async () => {
       const { logs, dateStr, day } = collectCurrentState();
       logs[dateStr] = day;
@@ -530,6 +603,10 @@
       }
     });
 
+    els.exportJsonBtn.addEventListener("click", exportJson);
+    els.importJsonBtn.addEventListener("click", () => els.importFileInput.click());
+    els.importFileInput.addEventListener("change", handleImportFile);
+
     els.tabMorning.addEventListener("click", () => setPeriod("morning"));
     els.tabNight.addEventListener("click", () => setPeriod("night"));
     els.logDate.addEventListener("change", () => loadDateIntoForm(els.logDate.value));
@@ -541,6 +618,7 @@
     ].forEach((input) => input.addEventListener("input", updatePreview));
 
     els.logDate.value = getTodayISO();
+    updateBackupInfo();
     setPeriod(currentPeriod);
   </script>
 </body>
