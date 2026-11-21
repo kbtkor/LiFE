@@ -1,11 +1,13 @@
 const STORAGE_KEY = "daily_health_logs_v3";
-const TARGETS_KEY = "code_life_targets_v1";
+const TARGETS_HISTORY_KEY = "code_life_targets_history_v1";
 const MYLIST_KEY = "code_life_mylist_v1";
 
 let currentDateStr = getTodayISO();
 let calYear = Number(currentDateStr.slice(0, 4));
 let calMonth = Number(currentDateStr.slice(5, 7)) - 1;
 let currentActivities = [];
+let editingActivityIndex = null;
+let editingMyListId = null;
 let isTextManuallyEdited = false;
 
 const els = {
@@ -36,7 +38,7 @@ const els = {
   nIhbText: document.getElementById("nIhbText"),
   nIhbPill: document.getElementById("nIhbPill"),
 
-  // Body
+  // Body & Targets
   waist: document.getElementById("waist"),
   weight: document.getElementById("weight"),
   bfp: document.getElementById("bfp"),
@@ -44,19 +46,26 @@ const els = {
   visceralFat: document.getElementById("visceralFat"),
   bmr: document.getElementById("bmr"),
   bodyTemp: document.getElementById("bodyTemp"),
+  bodyTargetSummary: document.getElementById("bodyTargetSummary"),
+  toggleBodyTargetBtn: document.getElementById("toggleBodyTargetBtn"),
+  bodyTargetEditor: document.getElementById("bodyTargetEditor"),
+  bodyTargetEffectiveDate: document.getElementById("bodyTargetEffectiveDate"),
   targetWaist: document.getElementById("targetWaist"),
   targetWeight: document.getElementById("targetWeight"),
 
-  // Intake & Supplements (Morning / Night)
+  // Intake & Supplements & Targets
   pGrams: document.getElementById("pGrams"),
   fGrams: document.getElementById("fGrams"),
   cGrams: document.getElementById("cGrams"),
   kcal: document.getElementById("kcal"),
+  intakeTargetDisplay: document.getElementById("intakeTargetDisplay"),
+  toggleIntakeTargetBtn: document.getElementById("toggleIntakeTargetBtn"),
+  intakeTargetEditor: document.getElementById("intakeTargetEditor"),
+  intakeTargetEffectiveDate: document.getElementById("intakeTargetEffectiveDate"),
   targetP: document.getElementById("targetP"),
   targetF: document.getElementById("targetF"),
   targetC: document.getElementById("targetC"),
   targetKcal: document.getElementById("targetKcal"),
-  intakeTargetDisplay: document.getElementById("intakeTargetDisplay"),
   mSuppHmb: document.getElementById("mSuppHmb"),
   mSuppAmino: document.getElementById("mSuppAmino"),
   mSuppHmbPill: document.getElementById("mSuppHmbPill"),
@@ -71,6 +80,7 @@ const els = {
   // Active
   activeKcal: document.getElementById("activeKcal"),
   cardioLoad: document.getElementById("cardioLoad"),
+  actFormTitle: document.getElementById("actFormTitle"),
   myListSelect: document.getElementById("myListSelect"),
   actCategory: document.getElementById("actCategory"),
   actName: document.getElementById("actName"),
@@ -78,6 +88,7 @@ const els = {
   actTimeVal: document.getElementById("actTimeVal"),
   actNote: document.getElementById("actNote"),
   addActivityBtn: document.getElementById("addActivityBtn"),
+  cancelActivityEditBtn: document.getElementById("cancelActivityEditBtn"),
   activityListContainer: document.getElementById("activityListContainer"),
 
   // Text & Save
@@ -86,10 +97,12 @@ const els = {
   formattedOutput: document.getElementById("formattedOutput"),
 
   // MyList
+  myListFormTitle: document.getElementById("myListFormTitle"),
   myShortName: document.getElementById("myShortName"),
   myFullName: document.getElementById("myFullName"),
   myDetail: document.getElementById("myDetail"),
   addMyListBtn: document.getElementById("addMyListBtn"),
+  cancelMyListEditBtn: document.getElementById("cancelMyListEditBtn"),
   myListItems: document.getElementById("myListItems"),
 
   // Calendar & Backup
@@ -135,25 +148,94 @@ function saveAllLogs(logs) {
   els.backupInfo.textContent = `保存済み日数: ${Object.keys(logs).length}日分`;
 }
 
-function loadTargets() {
+// ② 目標値履歴管理（変更日以降継続・変更日以前はそのまま）
+function loadTargetHistory() {
   try {
-    return JSON.parse(localStorage.getItem(TARGETS_KEY) || "{}");
-  } catch {
-    return {};
-  }
+    const raw = JSON.parse(localStorage.getItem(TARGETS_HISTORY_KEY) || "null");
+    if (Array.isArray(raw) && raw.length > 0) return raw;
+  } catch {}
+  return [
+    {
+      effectiveDate: "1900-01-01",
+      waist: "",
+      weight: "",
+      p: "",
+      f: "",
+      c: "",
+      kcal: ""
+    }
+  ];
 }
 
-function saveTargets() {
-  const t = {
-    waist: els.targetWaist.value.trim(),
-    weight: els.targetWeight.value.trim(),
-    p: els.targetP.value.trim(),
-    f: els.targetF.value.trim(),
-    c: els.targetC.value.trim(),
-    kcal: els.targetKcal.value.trim()
+function saveTargetHistory(list) {
+  list.sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
+  localStorage.setItem(TARGETS_HISTORY_KEY, JSON.stringify(list));
+}
+
+function getEffectiveTargetsForDate(dateStr) {
+  const history = loadTargetHistory();
+  let matched = {
+    effectiveDate: "1900-01-01",
+    waist: "",
+    weight: "",
+    p: "",
+    f: "",
+    c: "",
+    kcal: ""
   };
-  localStorage.setItem(TARGETS_KEY, JSON.stringify(t));
-  updateTargetStyles();
+  for (const entry of history) {
+    if (entry.effectiveDate <= dateStr) {
+      matched = { ...matched, ...entry };
+    }
+  }
+  return matched;
+}
+
+function commitTargetChangeForCurrentDate() {
+  const history = loadTargetHistory();
+  const base = getEffectiveTargetsForDate(currentDateStr);
+  const updatedEntry = {
+    effectiveDate: currentDateStr,
+    waist: els.targetWaist.value.trim() || base.waist || "",
+    weight: els.targetWeight.value.trim() || base.weight || "",
+    p: els.targetP.value.trim() || base.p || "",
+    f: els.targetF.value.trim() || base.f || "",
+    c: els.targetC.value.trim() || base.c || "",
+    kcal: els.targetKcal.value.trim() || base.kcal || ""
+  };
+
+  const existingIdx = history.findIndex((h) => h.effectiveDate === currentDateStr);
+  if (existingIdx >= 0) {
+    history[existingIdx] = updatedEntry;
+  } else {
+    history.push(updatedEntry);
+  }
+  saveTargetHistory(history);
+  refreshTargetDisplayAndColors();
+}
+
+function refreshTargetDisplayAndColors() {
+  const eff = getEffectiveTargetsForDate(currentDateStr);
+  els.bodyTargetEffectiveDate.textContent = currentDateStr;
+  els.intakeTargetEffectiveDate.textContent = currentDateStr;
+
+  els.bodyTargetSummary.textContent =
+    `適用中の目標（胴囲 / 体重）: ${eff.waist || "-"} cm / ${eff.weight || "-"} kg`;
+
+  const tp = eff.p || "-";
+  const tf = eff.f || "-";
+  const tc = eff.c || "-";
+  const tk = eff.kcal || "-";
+  els.intakeTargetDisplay.textContent =
+    `適用中の目標値: P ${tp}g / F ${tf}g / C ${tc}g / ${tk}kcal`;
+
+  applyColorClass(els.waist, getPercentDiffClass(els.waist.value, eff.waist));
+  applyColorClass(els.weight, getPercentDiffClass(els.weight.value, eff.weight));
+
+  applyColorClass(els.pGrams, getAbsDiffClass(els.pGrams.value, eff.p, 10, 25));
+  applyColorClass(els.fGrams, getAbsDiffClass(els.fGrams.value, eff.f, 10, 25));
+  applyColorClass(els.cGrams, getAbsDiffClass(els.cGrams.value, eff.c, 10, 25));
+  applyColorClass(els.kcal, getAbsDiffClass(els.kcal.value, eff.kcal, 100, 250));
 }
 
 function loadMyList() {
@@ -182,6 +264,34 @@ function toNum(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+function hasPositiveValue(v) {
+  const n = toNum(v);
+  return n !== null && n !== 0;
+}
+
+// ① 空欄ミス赤枠警告（数値あり、もしくは計測なしチェックでクリア）
+function updateBlankWarnings() {
+  const mSkipped = els.mNoRecord.checked;
+  [els.mBpSys, els.mBpDia, els.mHr].forEach((inp) => {
+    const ok = mSkipped || hasPositiveValue(inp.value);
+    inp.classList.toggle("err-border", !ok);
+  });
+
+  const nSkipped = els.nNoRecord.checked;
+  [els.nBpSys, els.nBpDia, els.nHr].forEach((inp) => {
+    const ok = nSkipped || hasPositiveValue(inp.value);
+    inp.classList.toggle("err-border", !ok);
+  });
+
+  [els.waist, els.weight, els.bfp, els.bmi, els.visceralFat, els.bmr, els.bodyTemp].forEach((inp) => {
+    inp.classList.toggle("err-border", !hasPositiveValue(inp.value));
+  });
+
+  [els.pGrams, els.fGrams, els.cGrams, els.kcal].forEach((inp) => {
+    inp.classList.toggle("err-border", !hasPositiveValue(inp.value));
+  });
+}
+
 function updateVitalsVisibility(slot) {
   const isMorning = slot === "morning";
   const chk = isMorning ? els.mNoRecord : els.nNoRecord;
@@ -191,9 +301,7 @@ function updateVitalsVisibility(slot) {
   const hr = isMorning ? els.mHr.value.trim() : els.nHr.value.trim();
 
   const hasAnyData =
-    (bpSys !== "" && bpSys !== "0") ||
-    (bpDia !== "" && bpDia !== "0") ||
-    (hr !== "" && hr !== "0");
+    hasPositiveValue(bpSys) || hasPositiveValue(bpDia) || hasPositiveValue(hr);
 
   if (hasAnyData) {
     body.classList.remove("hidden");
@@ -239,22 +347,6 @@ function applyColorClass(inputEl, colorType) {
   inputEl.classList.add(`val-${colorType}`);
 }
 
-function updateTargetStyles() {
-  applyColorClass(els.waist, getPercentDiffClass(els.waist.value, els.targetWaist.value));
-  applyColorClass(els.weight, getPercentDiffClass(els.weight.value, els.targetWeight.value));
-
-  applyColorClass(els.pGrams, getAbsDiffClass(els.pGrams.value, els.targetP.value, 10, 25));
-  applyColorClass(els.fGrams, getAbsDiffClass(els.fGrams.value, els.targetF.value, 10, 25));
-  applyColorClass(els.cGrams, getAbsDiffClass(els.cGrams.value, els.targetC.value, 10, 25));
-  applyColorClass(els.kcal, getAbsDiffClass(els.kcal.value, els.targetKcal.value, 100, 250));
-
-  const tp = els.targetP.value.trim() || "-";
-  const tf = els.targetF.value.trim() || "-";
-  const tc = els.targetC.value.trim() || "-";
-  const tk = els.targetKcal.value.trim() || "-";
-  els.intakeTargetDisplay.textContent = `目標値: P ${tp}g / F ${tf}g / C ${tc}g / ${tk}kcal`;
-}
-
 function extractNumericValue(raw) {
   if (raw === null || raw === undefined) return "";
   const firstLine = String(raw).split(/\r?\n/)[0].trim();
@@ -262,7 +354,7 @@ function extractNumericValue(raw) {
   return match ? match[0] : "";
 }
 
-// 朝のVitalsは時間帯に関わらず朝欄へ反映（夜専用は n_bp_sys / n_bp_dia / n_hr）
+// 夜Vitalsが朝Vitalsに上書きされないよう、朝キーと夜キーを完全分離して反映
 function applyUrlParams() {
   const params = new URLSearchParams(window.location.search);
   const mappings = [
@@ -279,12 +371,14 @@ function applyUrlParams() {
     { keys: ["kcal"], input: els.kcal },
     { keys: ["active_kcal", "act"], input: els.activeKcal },
     { keys: ["cardio_load", "cardio"], input: els.cardioLoad },
-    { keys: ["m_bp_sys", "bp_sys", "bps"], input: els.mBpSys },
-    { keys: ["m_bp_dia", "bp_dia", "bpd"], input: els.mBpDia },
-    { keys: ["m_hr", "hr"], input: els.mHr },
-    { keys: ["n_bp_sys", "nbps"], input: els.nBpSys },
-    { keys: ["n_bp_dia", "nbpd"], input: els.nBpDia },
-    { keys: ["n_hr", "nhr"], input: els.nHr }
+    // 朝Vitals専用キー
+    { keys: ["m_bp_sys", "morning_bp_sys", "bp_sys", "bps"], input: els.mBpSys },
+    { keys: ["m_bp_dia", "morning_bp_dia", "bp_dia", "bpd"], input: els.mBpDia },
+    { keys: ["m_hr", "morning_hr", "hr"], input: els.mHr },
+    // 夜Vitals専用キー
+    { keys: ["n_bp_sys", "night_bp_sys", "nbps"], input: els.nBpSys },
+    { keys: ["n_bp_dia", "night_bp_dia", "nbpd"], input: els.nBpDia },
+    { keys: ["n_hr", "night_hr", "nhr"], input: els.nHr }
   ];
 
   let count = 0;
@@ -305,6 +399,18 @@ function applyUrlParams() {
     : "ローカル保存モード";
 }
 
+// ④ ホーム：入力済活動内容の編集・削除
+function resetActivityForm() {
+  editingActivityIndex = null;
+  els.actFormTitle.textContent = "活動内容を追加";
+  els.addActivityBtn.textContent = "＋ 活動を追加";
+  els.cancelActivityEditBtn.classList.add("hidden");
+  els.actName.value = "";
+  els.actTimeVal.value = "";
+  els.actNote.value = "";
+  els.myListSelect.value = "";
+}
+
 function renderActivities() {
   els.activityListContainer.innerHTML = "";
   currentActivities.forEach((act, idx) => {
@@ -317,16 +423,40 @@ function renderActivities() {
         <span style="color:var(--muted);">${act.timeType}: ${act.timeVal || "-"}${notePart}</span>
       </div>
     `;
+
+    const actions = document.createElement("div");
+    actions.className = "item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "edit-btn";
+    editBtn.textContent = "編集";
+    editBtn.onclick = () => {
+      editingActivityIndex = idx;
+      els.actFormTitle.textContent = "活動内容を編集中";
+      els.addActivityBtn.textContent = "更新を反映";
+      els.cancelActivityEditBtn.classList.remove("hidden");
+      els.actCategory.value = act.category;
+      els.actName.value = act.name;
+      els.actTimeType.value = act.timeType;
+      els.actTimeVal.value = act.timeVal || "";
+      els.actNote.value = act.note || "";
+    };
+
     const delBtn = document.createElement("button");
     delBtn.type = "button";
     delBtn.className = "danger-btn";
     delBtn.textContent = "削除";
     delBtn.onclick = () => {
       currentActivities.splice(idx, 1);
+      if (editingActivityIndex === idx) resetActivityForm();
       renderActivities();
       if (!isTextManuallyEdited) updatePreviewText();
     };
-    div.appendChild(delBtn);
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    div.appendChild(actions);
     els.activityListContainer.appendChild(div);
   });
 }
@@ -385,7 +515,7 @@ function collectCurrentDayState() {
 }
 
 function formatVitalsBlock(title, v) {
-  const hasData = (v.bpSys && v.bpSys !== "0") || (v.bpDia && v.bpDia !== "0") || (v.hr && v.hr !== "0");
+  const hasData = hasPositiveValue(v.bpSys) || hasPositiveValue(v.bpDia) || hasPositiveValue(v.hr);
   if (v.noRecord && !hasData) {
     return [`${title}: 記録なし`];
   }
@@ -447,6 +577,7 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
   currentDateStr = dateStr;
   els.dateTextDisplay.textContent = dateStr;
   isTextManuallyEdited = false;
+  resetActivityForm();
 
   const logs = loadAllLogs();
   const day = logs[dateStr] || {};
@@ -498,10 +629,20 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
 
   if (applyUrl) applyUrlParams();
 
+  // 該当日の有効目標値を入力欄へ反映（編集画面を開いたとき用）
+  const effTargets = getEffectiveTargetsForDate(currentDateStr);
+  els.targetWaist.value = effTargets.waist ?? "";
+  els.targetWeight.value = effTargets.weight ?? "";
+  els.targetP.value = effTargets.p ?? "";
+  els.targetF.value = effTargets.f ?? "";
+  els.targetC.value = effTargets.c ?? "";
+  els.targetKcal.value = effTargets.kcal ?? "";
+
   updateVitalsVisibility("morning");
   updateVitalsVisibility("night");
   updateTogglePills();
-  updateTargetStyles();
+  refreshTargetDisplayAndColors();
+  updateBlankWarnings();
   renderActivities();
 
   if (day.customText && !applyUrl) {
@@ -509,6 +650,17 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
   } else {
     updatePreviewText();
   }
+}
+
+// ⑤ Myリスト：登録済内容の編集・削除
+function resetMyListForm() {
+  editingMyListId = null;
+  els.myListFormTitle.textContent = "Myリスト（活動内容マスタ登録）";
+  els.addMyListBtn.textContent = "Myリストに登録";
+  els.cancelMyListEditBtn.classList.add("hidden");
+  els.myShortName.value = "";
+  els.myFullName.value = "";
+  els.myDetail.value = "";
 }
 
 function renderMyList() {
@@ -530,17 +682,102 @@ function renderMyList() {
         <span style="color:var(--muted);">${item.detail || "-"}</span>
       </div>
     `;
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "danger-btn";
-    del.textContent = "削除";
-    del.onclick = () => {
-      list.splice(idx, 1);
-      saveMyList(list);
+
+    const actions = document.createElement("div");
+    actions.className = "item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "edit-btn";
+    editBtn.textContent = "編集";
+    editBtn.onclick = () => {
+      editingMyListId = item.id;
+      els.myListFormTitle.textContent = "Myリスト項目を編集中";
+      els.addMyListBtn.textContent = "変更を保存";
+      els.cancelMyListEditBtn.classList.remove("hidden");
+      els.myShortName.value = item.shortName || "";
+      els.myFullName.value = item.fullName || "";
+      els.myDetail.value = item.detail || "";
     };
-    card.appendChild(del);
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "danger-btn";
+    delBtn.textContent = "削除";
+    delBtn.onclick = () => {
+      const nextList = loadMyList().filter((_, i) => i !== idx);
+      if (editingMyListId === item.id) resetMyListForm();
+      saveMyList(nextList);
+    };
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    card.appendChild(actions);
     els.myListItems.appendChild(card);
   });
+}
+
+// カレンダー日本の祝日判定（日祝赤字・土曜青字）
+function getNthWeekdayOfMonth(year, month1Based, weekday0Sun, nth) {
+  const first = new Date(year, month1Based - 1, 1);
+  const diff = (weekday0Sun - first.getDay() + 7) % 7;
+  return 1 + diff + (nth - 1) * 7;
+}
+
+function getEquinoxDay(year, isAutumn) {
+  // 1980-2099年向けの春分・秋分日近似式
+  if (!isAutumn) {
+    return Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+  }
+  return Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+}
+
+function isJapaneseHoliday(year, month1Based, day) {
+  const fixedHolidays = new Set([
+    "01-01", // 元日
+    "02-11", // 建国記念の日
+    "02-23", // 天皇誕生日
+    "04-29", // 昭和の日
+    "05-03", // 憲法記念日
+    "05-04", // みどりの日
+    "05-05", // こどもの日
+    "08-11", // 山の日
+    "11-03", // 文化の日
+    "11-23"  // 勤労感謝の日
+  ]);
+
+  const mmdd = `${String(month1Based).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const movable = new Set();
+
+  if (month1Based === 1) movable.add(getNthWeekdayOfMonth(year, 1, 1, 2)); // 成人の日（第2月曜）
+  if (month1Based === 3) movable.add(getEquinoxDay(year, false)); // 春分の日
+  if (month1Based === 7) movable.add(getNthWeekdayOfMonth(year, 7, 1, 3)); // 海の日（第3月曜）
+  if (month1Based === 9) movable.add(getNthWeekdayOfMonth(year, 9, 1, 3)); // 敬老の日（第3月曜）
+  if (month1Based === 9) movable.add(getEquinoxDay(year, true)); // 秋分の日
+  if (month1Based === 10) movable.add(getNthWeekdayOfMonth(year, 10, 1, 2)); // スポーツの日（第2月曜）
+
+  const isDirectHoliday = fixedHolidays.has(mmdd) || movable.has(day);
+  if (isDirectHoliday) return true;
+
+  // 振替休日（日曜にあたる祝日の翌日以降の平日）
+  const dt = new Date(year, month1Based - 1, day);
+  if (dt.getDay() !== 0) {
+    const prev = new Date(year, month1Based - 1, day - 1);
+    if (prev.getDay() === 0) {
+      const pMonth = prev.getMonth() + 1;
+      const pDay = prev.getDate();
+      const pMmdd = `${String(pMonth).padStart(2, "0")}-${String(pDay).padStart(2, "0")}`;
+      const pMovable =
+        (pMonth === 1 && pDay === getNthWeekdayOfMonth(year, 1, 1, 2)) ||
+        (pMonth === 3 && pDay === getEquinoxDay(year, false)) ||
+        (pMonth === 7 && pDay === getNthWeekdayOfMonth(year, 7, 1, 3)) ||
+        (pMonth === 9 && pDay === getNthWeekdayOfMonth(year, 9, 1, 3)) ||
+        (pMonth === 9 && pDay === getEquinoxDay(year, true)) ||
+        (pMonth === 10 && pDay === getNthWeekdayOfMonth(year, 10, 1, 2));
+      if (fixedHolidays.has(pMmdd) || pMovable) return true;
+    }
+  }
+  return false;
 }
 
 function renderCalendar() {
@@ -548,10 +785,20 @@ function renderCalendar() {
   els.calMonthLabel.textContent = `${calYear}年${calMonth + 1}月`;
   els.calGrid.innerHTML = "";
 
-  ["日", "月", "火", "水", "木", "金", "土"].forEach((w) => {
+  const weekDefs = [
+    { label: "日", cls: "sun" },
+    { label: "月", cls: "" },
+    { label: "火", cls: "" },
+    { label: "水", cls: "" },
+    { label: "木", cls: "" },
+    { label: "金", cls: "" },
+    { label: "土", cls: "sat" }
+  ];
+
+  weekDefs.forEach((w) => {
     const h = document.createElement("div");
-    h.className = "cal-head";
-    h.textContent = w;
+    h.className = `cal-head ${w.cls}`.trim();
+    h.textContent = w.label;
     els.calGrid.appendChild(h);
   });
 
@@ -566,9 +813,20 @@ function renderCalendar() {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const iso = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const dow = new Date(calYear, calMonth, d).getDay();
+    const isSunOrHoliday = dow === 0 || isJapaneseHoliday(calYear, calMonth + 1, d);
+    const isSat = !isSunOrHoliday && dow === 6;
+
     const cell = document.createElement("div");
     const hasLog = Boolean(logs[iso]);
-    cell.className = `cal-cell ${hasLog ? "has-log" : ""} ${iso === currentDateStr ? "selected" : ""}`;
+    cell.className = [
+      "cal-cell",
+      isSunOrHoliday ? "sun-holiday" : "",
+      isSat ? "sat" : "",
+      hasLog ? "has-log" : "",
+      iso === currentDateStr ? "selected" : ""
+    ].filter(Boolean).join(" ");
+
     cell.innerHTML = `${d}${hasLog ? '<span class="cal-dot"></span>' : ""}`;
     cell.onclick = () => {
       loadDateIntoForm(iso, false);
@@ -679,8 +937,6 @@ function renderDataPage() {
   ]);
 
   const allDates = Object.keys(logs).sort((a, b) => b.localeCompare(a));
-  const tWeight = els.targetWeight.value;
-  const tWaist = els.targetWaist.value;
 
   let html = `
     <thead>
@@ -711,9 +967,10 @@ function renderDataPage() {
       const n = day.night || {};
       const b = day.body || {};
       const inc = day.intake || {};
+      const effTargets = getEffectiveTargetsForDate(d);
 
-      const wCls = getPercentDiffClass(b.weight, tWeight);
-      const waistCls = getPercentDiffClass(b.waist, tWaist);
+      const wCls = getPercentDiffClass(b.weight, effTargets.weight);
+      const waistCls = getPercentDiffClass(b.waist, effTargets.waist);
 
       html += `
         <tr>
@@ -755,9 +1012,23 @@ document.querySelectorAll(".nav-btn").forEach((btn) => {
 els.prevDateBtn.addEventListener("click", () => loadDateIntoForm(shiftDate(currentDateStr, -1), false));
 els.nextDateBtn.addEventListener("click", () => loadDateIntoForm(shiftDate(currentDateStr, 1), false));
 
+// ③ 目標値入力欄の折りたたみトグル
+els.toggleBodyTargetBtn.addEventListener("click", () => {
+  const willOpen = els.bodyTargetEditor.classList.contains("hidden");
+  els.bodyTargetEditor.classList.toggle("hidden", !willOpen);
+  els.toggleBodyTargetBtn.textContent = willOpen ? "Body 目標値設定を閉じる" : "Body 目標値設定を開く";
+});
+
+els.toggleIntakeTargetBtn.addEventListener("click", () => {
+  const willOpen = els.intakeTargetEditor.classList.contains("hidden");
+  els.intakeTargetEditor.classList.toggle("hidden", !willOpen);
+  els.toggleIntakeTargetBtn.textContent = willOpen ? "Intake 目標値設定を閉じる" : "Intake 目標値設定を開く";
+});
+
 [els.mNoRecord, els.mBpSys, els.mBpDia, els.mHr].forEach((el) => {
   el.addEventListener("input", () => {
     updateVitalsVisibility("morning");
+    updateBlankWarnings();
     if (!isTextManuallyEdited) updatePreviewText();
   });
 });
@@ -765,6 +1036,7 @@ els.nextDateBtn.addEventListener("click", () => loadDateIntoForm(shiftDate(curre
 [els.nNoRecord, els.nBpSys, els.nBpDia, els.nHr].forEach((el) => {
   el.addEventListener("input", () => {
     updateVitalsVisibility("night");
+    updateBlankWarnings();
     if (!isTextManuallyEdited) updatePreviewText();
   });
 });
@@ -777,7 +1049,7 @@ els.nextDateBtn.addEventListener("click", () => loadDateIntoForm(shiftDate(curre
 });
 
 [els.targetWaist, els.targetWeight, els.targetP, els.targetF, els.targetC, els.targetKcal].forEach((el) => {
-  el.addEventListener("input", saveTargets);
+  el.addEventListener("input", commitTargetChangeForCurrentDate);
 });
 
 [
@@ -787,7 +1059,8 @@ els.nextDateBtn.addEventListener("click", () => loadDateIntoForm(shiftDate(curre
   els.activeKcal, els.cardioLoad, els.mSymptom, els.nSymptom
 ].forEach((el) => {
   el.addEventListener("input", () => {
-    updateTargetStyles();
+    refreshTargetDisplayAndColors();
+    updateBlankWarnings();
     if (!isTextManuallyEdited) updatePreviewText();
   });
 });
@@ -814,40 +1087,62 @@ els.myListSelect.addEventListener("change", () => {
 els.addActivityBtn.addEventListener("click", () => {
   const name = els.actName.value.trim();
   if (!name) return;
-  currentActivities.push({
+
+  const entry = {
     category: els.actCategory.value,
     name,
     timeType: els.actTimeType.value,
     timeVal: els.actTimeVal.value.trim(),
     note: els.actNote.value.trim()
-  });
-  els.actName.value = "";
-  els.actTimeVal.value = "";
-  els.actNote.value = "";
-  els.myListSelect.value = "";
+  };
+
+  if (editingActivityIndex !== null && currentActivities[editingActivityIndex]) {
+    currentActivities[editingActivityIndex] = entry;
+  } else {
+    currentActivities.push(entry);
+  }
+
+  resetActivityForm();
   renderActivities();
   if (!isTextManuallyEdited) updatePreviewText();
 });
+
+els.cancelActivityEditBtn.addEventListener("click", resetActivityForm);
 
 els.addMyListBtn.addEventListener("click", () => {
   const shortName = els.myShortName.value.trim();
   const fullName = els.myFullName.value.trim();
   const detail = els.myDetail.value.trim();
   if (!shortName && !fullName) return;
+
   const list = loadMyList();
-  list.push({
-    id: `my_${Date.now()}`,
-    shortName: shortName || fullName,
-    fullName: fullName || shortName,
-    detail
-  });
+  if (editingMyListId) {
+    const idx = list.findIndex((x) => x.id === editingMyListId);
+    if (idx >= 0) {
+      list[idx] = {
+        ...list[idx],
+        shortName: shortName || fullName,
+        fullName: fullName || shortName,
+        detail
+      };
+    }
+  } else {
+    list.push({
+      id: `my_${Date.now()}`,
+      shortName: shortName || fullName,
+      fullName: fullName || shortName,
+      detail
+    });
+  }
+
   saveMyList(list);
-  els.myShortName.value = "";
-  els.myFullName.value = "";
-  els.myDetail.value = "";
+  resetMyListForm();
 });
 
+els.cancelMyListEditBtn.addEventListener("click", resetMyListForm);
+
 els.saveAndCopyBtn.addEventListener("click", async () => {
+  updateBlankWarnings();
   const logs = loadAllLogs();
   const state = collectCurrentDayState();
   state.customText = els.formattedOutput.value;
@@ -878,7 +1173,12 @@ els.calNextMonth.addEventListener("click", () => {
 
 els.exportJsonBtn.addEventListener("click", () => {
   const logs = loadAllLogs();
-  const blob = new Blob([JSON.stringify(logs, null, 2)], { type: "application/json" });
+  const payload = {
+    logs,
+    targetHistory: loadTargetHistory(),
+    myList: loadMyList()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -899,8 +1199,19 @@ els.importFileInput.addEventListener("change", (e) => {
     try {
       const parsed = JSON.parse(String(reader.result || "{}"));
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
-      const merged = { ...loadAllLogs(), ...parsed };
+
+      // 新形式（logs / targetHistory / myList）と旧形式（日付キー直下）の両方に対応
+      const importedLogs = parsed.logs && typeof parsed.logs === "object" ? parsed.logs : parsed;
+      const merged = { ...loadAllLogs(), ...importedLogs };
       saveAllLogs(merged);
+
+      if (Array.isArray(parsed.targetHistory) && parsed.targetHistory.length > 0) {
+        saveTargetHistory(parsed.targetHistory);
+      }
+      if (Array.isArray(parsed.myList)) {
+        saveMyList(parsed.myList);
+      }
+
       loadDateIntoForm(currentDateStr, false);
       renderCalendar();
       els.syncStatus.textContent = "JSONインポート完了";
@@ -918,14 +1229,6 @@ els.toggleLogTableBtn.addEventListener("click", () => {
 });
 
 // 初期化
-const savedTargets = loadTargets();
-els.targetWaist.value = savedTargets.waist ?? "";
-els.targetWeight.value = savedTargets.weight ?? "";
-els.targetP.value = savedTargets.p ?? "";
-els.targetF.value = savedTargets.f ?? "";
-els.targetC.value = savedTargets.c ?? "";
-els.targetKcal.value = savedTargets.kcal ?? "";
-
 renderMyList();
 saveAllLogs(loadAllLogs());
 loadDateIntoForm(currentDateStr, true);
