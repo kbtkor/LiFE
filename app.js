@@ -353,7 +353,6 @@ function extractNumericValue(raw) {
   return match ? match[0] : "";
 }
 
-// 保存済みデータを消さずに、URLパラメータに含まれる項目だけを上書き反映
 function applyUrlParams() {
   const params = new URLSearchParams(window.location.search);
   const mappings = [
@@ -396,6 +395,11 @@ function applyUrlParams() {
   els.syncStatus.textContent = count > 0
     ? `URLから${count}項目反映（既存データ保持）`
     : "ローカル保存モード";
+
+  // 一度読み込んだURLパラメータをアドレスバーから消去し、再読み込み時の二重適用を防ぐ
+  if (count > 0 && window.history && window.history.replaceState) {
+    window.history.replaceState({}, "", window.location.pathname);
+  }
 
   return count;
 }
@@ -579,7 +583,6 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
   isTextManuallyEdited = false;
   resetActivityForm();
 
-  // 1. まず保存済みログを復元し、既存データを保持する
   const logs = loadAllLogs();
   const day = logs[dateStr] || {};
   const m = day.morning || {};
@@ -628,7 +631,6 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
   els.cardioLoad.value = act.cardioLoad ?? "";
   currentActivities = Array.isArray(act.activities) ? [...act.activities] : [];
 
-  // 2. URLパラメータがある項目だけを後から上書き反映
   let urlUpdatedCount = 0;
   if (applyUrl) {
     urlUpdatedCount = applyUrlParams();
