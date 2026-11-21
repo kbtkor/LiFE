@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>デイリーヘルスログ</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .container { max-width: 560px; margin: 0 auto; }
+    h1 { font-size: 1.2rem; margin: 0 0 12px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: var(--text);
+      font-size: 1rem;
+    }
+    button {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #334155;
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    button.active {
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 700;
+      border-color: var(--accent);
+    }
+    button.primary {
+      background: var(--accent-2);
+      color: #052e16;
+      font-weight: 700;
+      border-color: var(--accent-2);
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .chip.on {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent);
+      color: #e0f2fe;
+    }
+    textarea.output {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85rem;
+      min-height: 360px;
+    }
+    .status { font-size: 0.8rem; color: var(--accent); margin-left: auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row" style="margin-bottom:10px;">
+      <h1>デイリーヘルスログ</h1>
+      <span id="syncStatus" class="status">待機中</span>
+    </div>
+
+    <!-- 日付と朝・夜切り替え -->
+    <div class="card">
+      <div class="grid-2">
+        <div>
+          <label for="logDate">日付</label>
+          <input type="date" id="logDate" />
+        </div>
+        <div>
+          <label>時間帯</label>
+          <div class="row">
+            <button type="button" id="tabMorning" class="active" style="flex:1;">朝</button>
+            <button type="button" id="tabNight" style="flex:1;">夜</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 朝・夜 計測＆ルーティン -->
+    <div class="card">
+      <div class="grid-3" style="margin-bottom:10px;">
+        <div>
+          <label for="bpSys">血圧（上）</label>
+          <input type="number" id="bpSys" inputmode="numeric" placeholder="125" />
+        </div>
+        <div>
+          <label for="bpDia">血圧（下）</label>
+          <input type="number" id="bpDia" inputmode="numeric" placeholder="84" />
+        </div>
+        <div>
+          <label for="hr">脈拍</label>
+          <input type="number" id="hr" inputmode="numeric" placeholder="68" />
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:10px;">
+        <div>
+          <label for="waist">胴囲 (cm)</label>
+          <input type="number" step="0.1" id="waist" inputmode="decimal" placeholder="85" />
+        </div>
+        <div>
+          <label for="weight">体重 (kg)</label>
+          <input type="number" step="0.1" id="weight" inputmode="decimal" placeholder="66.1" />
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label>プリセット項目（タップで切替）</label>
+        <div class="row" id="presetChips"></div>
+      </div>
+
+      <div>
+        <label for="symptom">自覚症状</label>
+        <input type="text" id="symptom" value="自覚症状なし" />
+      </div>
+    </div>
+
+    <!-- 栄養・活動ログ -->
+    <div class="card">
+      <label>摂取PFC (P / F / C)</label>
+      <div class="grid-3" style="margin-bottom:10px;">
+        <input type="number" step="0.1" id="pGrams" inputmode="decimal" placeholder="P: 107.1" />
+        <input type="number" step="0.1" id="fGrams" inputmode="decimal" placeholder="F: 48.1" />
+        <input type="number" step="0.1" id="cGrams" inputmode="decimal" placeholder="C: 243.5" />
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label for="kcal">摂取カロリー</label>
+          <input type="number" step="0.1" id="kcal" inputmode="decimal" placeholder="1834.6" />
+        </div>
+        <div>
+          <label for="activeKcal">アクティブ消費</label>
+          <input type="number" step="1" id="activeKcal" inputmode="numeric" placeholder="18" />
+        </div>
+        <div>
+          <label for="cardioLoad">カーディオ負荷</label>
+          <input type="number" step="1" id="cardioLoad" inputmode="numeric" placeholder="3" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 保存＆コピー -->
+    <div class="card">
+      <button type="button" id="saveAndCopyBtn" class="primary" style="margin-bottom:10px;">
+        保存してGemini用テキストをコピー
+      </button>
+      <label for="formattedOutput">整形テキスト（直近7日平均付き・Geminiへ貼り付け可能）</label>
+      <textarea id="formattedOutput" class="output" readonly></textarea>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "daily_health_logs_v1";
+
+    const PRESETS_BY_PERIOD = {
+      morning: [
+        { id: "hmb_m", label: "①HMB1000mg", defaultOn: true },
+        { id: "ihb_m", label: "IHBあり", defaultOn: true }
+      ],
+      night: [
+        { id: "hmb_n", label: "①HMB1000mg", defaultOn: true },
+        { id: "hgpp_n1", label: "②HGPP5回", defaultOn: true },
+        { id: "hgpp_n2", label: "③HGPP5回", defaultOn: true },
+        { id: "ihb_n", label: "IHBあり", defaultOn: true }
+      ]
+    };
+
+    let currentPeriod = new Date().getHours() < 12 ? "morning" : "night";
+    let activePresetIds = new Set();
+
+    const els = {
+      logDate: document.getElementById("logDate"),
+      tabMorning: document.getElementById("tabMorning"),
+      tabNight: document.getElementById("tabNight"),
+      bpSys: document.getElementById("bpSys"),
+      bpDia: document.getElementById("bpDia"),
+      hr: document.getElementById("hr"),
+      waist: document.getElementById("waist"),
+      weight: document.getElementById("weight"),
+      symptom: document.getElementById("symptom"),
+      presetChips: document.getElementById("presetChips"),
+      pGrams: document.getElementById("pGrams"),
+      fGrams: document.getElementById("fGrams"),
+      cGrams: document.getElementById("cGrams"),
+      kcal: document.getElementById("kcal"),
+      activeKcal: document.getElementById("activeKcal"),
+      cardioLoad: document.getElementById("cardioLoad"),
+      formattedOutput: document.getElementById("formattedOutput"),
+      saveAndCopyBtn: document.getElementById("saveAndCopyBtn"),
+      syncStatus: document.getElementById("syncStatus")
+    };
+
+    function getTodayISO() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      return new Date(now - offset).toISOString().slice(0, 10);
+    }
+
+    function formatMonthDay(isoDate) {
+      const [, m, d] = isoDate.split("-");
+      return `${Number(m)}/${Number(d)}`;
+    }
+
+    function loadAllLogs() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveAllLogs(logs) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+    }
+
+    function toNum(val) {
+      if (val === undefined || val === null || String(val).trim() === "") return null;
+      const n = Number(val);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function calcAvg(nums, decimals = 1) {
+      if (!nums.length) return null;
+      const sum = nums.reduce((acc, v) => acc + v, 0);
+      const avg = sum / nums.length;
+      const factor = Math.pow(10, decimals);
+      return (Math.round(avg * factor) / factor).toFixed(decimals);
+    }
+
+    function build7DaySummary(logs, baseDateStr, currentDayState) {
+      // プレビュー中の現在日データも反映した状態で直近7日分（baseDateStr以前・最大7日）を集計
+      const mergedLogs = {
+        ...logs,
+        [baseDateStr]: currentDayState
+      };
+
+      const targetDates = Object.keys(mergedLogs)
+        .filter((d) => d <= baseDateStr)
+        .sort((a, b) => b.localeCompare(a))
+        .slice(0, 7);
+
+      if (!targetDates.length) {
+        return "--- 直近7日平均 ---\nデータなし";
+      }
+
+      const mSys = [], mDia = [];
+      const nSys = [], nDia = [];
+      const weights = [];
+      const pList = [], fList = [], cList = [];
+      const cardioList = [];
+
+      targetDates.forEach((d) => {
+        const day = mergedLogs[d] || {};
+        const m = day.morning || {};
+        const n = day.night || {};
+        const nut = day.nutrition || {};
+
+        const ms = toNum(m.bpSys);
+        const md = toNum(m.bpDia);
+        if (ms !== null) mSys.push(ms);
+        if (md !== null) mDia.push(md);
+
+        const ns = toNum(n.bpSys);
+        const nd = toNum(n.bpDia);
+        if (ns !== null) nSys.push(ns);
+        if (nd !== null) nDia.push(nd);
+
+        // 体重は夜があれば夜、なければ朝を採用（両方ある場合は両方含めるか優先するか調整可能）
+        const wNight = toNum(n.weight);
+        const wMorning = toNum(m.weight);
+        if (wNight !== null) weights.push(wNight);
+        else if (wMorning !== null) weights.push(wMorning);
+
+        const p = toNum(nut.p);
+        const f = toNum(nut.f);
+        const c = toNum(nut.c);
+        if (p !== null) pList.push(p);
+        if (f !== null) fList.push(f);
+        if (c !== null) cList.push(c);
+
+        const cardio = toNum(nut.cardioLoad);
+        if (cardio !== null) cardioList.push(cardio);
+      });
+
+      const mBpAvg = (mSys.length && mDia.length)
+        ? `${calcAvg(mSys, 1)}/${calcAvg(mDia, 1)}`
+        : "-";
+      const nBpAvg = (nSys.length && nDia.length)
+        ? `${calcAvg(nSys, 1)}/${calcAvg(nDia, 1)}`
+        : "-";
+
+      const weightAvg = weights.length ? `${calcAvg(weights, 1)}kg` : "-";
+      const pfcAvg = (pList.length || fList.length || cList.length)
+        ? `${calcAvg(pList, 1) ?? "-"} / ${calcAvg(fList, 1) ?? "-"} / ${calcAvg(cList, 1) ?? "-"}`
+        : "-";
+      const cardioAvg = cardioList.length ? `${calcAvg(cardioList, 1)}` : "-";
+
+      return [
+        `--- 直近${targetDates.length}日平均 ---`,
+        `血圧(朝/夜): ${mBpAvg} / ${nBpAvg}`,
+        `体重: ${weightAvg}`,
+        `PFC: ${pfcAvg}`,
+        `カーディオ負荷: ${cardioAvg}`
+      ].join("\n");
+    }
+
+    function renderPresets() {
+      els.presetChips.innerHTML = "";
+      const list = PRESETS_BY_PERIOD[currentPeriod];
+      list.forEach((item) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        const isOn = activePresetIds.has(item.id);
+        btn.className = `chip ${isOn ? "on" : ""}`;
+        btn.textContent = `${isOn ? "✓ " : ""}${item.label}`;
+        btn.onclick = () => {
+          if (activePresetIds.has(item.id)) {
+            activePresetIds.delete(item.id);
+          } else {
+            activePresetIds.add(item.id);
+          }
+          renderPresets();
+          updatePreview();
+        };
+        els.presetChips.appendChild(btn);
+      });
+    }
+
+    function setPeriod(period) {
+      currentPeriod = period;
+      els.tabMorning.classList.toggle("active", period === "morning");
+      els.tabNight.classList.toggle("active", period === "night");
+      loadDateIntoForm(els.logDate.value);
+    }
+
+    function applyUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const map = {
+        p: els.pGrams,
+        f: els.fGrams,
+        c: els.cGrams,
+        kcal: els.kcal,
+        wt: els.weight,
+        waist: els.waist,
+        bps: els.bpSys,
+        bpd: els.bpDia,
+        hr: els.hr,
+        act: els.activeKcal,
+        cardio: els.cardioLoad
+      };
+      let appliedCount = 0;
+      Object.entries(map).forEach(([key, input]) => {
+        const val = params.get(key);
+        if (val !== null && val.trim() !== "") {
+          input.value = val.trim();
+          appliedCount++;
+        }
+      });
+      els.syncStatus.textContent = appliedCount > 0
+        ? `URLから${appliedCount}項目反映`
+        : "ローカル保存モード";
+    }
+
+    function loadDateIntoForm(dateStr) {
+      const logs = loadAllLogs();
+      const day = logs[dateStr] || { morning: {}, night: {}, nutrition: {} };
+      const slot = day[currentPeriod] || {};
+      const nut = day.nutrition || {};
+
+      els.bpSys.value = slot.bpSys ?? "";
+      els.bpDia.value = slot.bpDia ?? "";
+      els.hr.value = slot.hr ?? "";
+      els.waist.value = slot.waist ?? day.morning?.waist ?? "";
+      els.weight.value = slot.weight ?? day.morning?.weight ?? "";
+      els.symptom.value = slot.symptom ?? "自覚症状なし";
+
+      const defaults = PRESETS_BY_PERIOD[currentPeriod]
+        .filter((x) => x.defaultOn)
+        .map((x) => x.id);
+      activePresetIds = new Set(slot.presets ?? defaults);
+
+      els.pGrams.value = nut.p ?? "";
+      els.fGrams.value = nut.f ?? "";
+      els.cGrams.value = nut.c ?? "";
+      els.kcal.value = nut.kcal ?? "";
+      els.activeKcal.value = nut.activeKcal ?? "";
+      els.cardioLoad.value = nut.cardioLoad ?? "";
+
+      applyUrlParams();
+      renderPresets();
+      updatePreview();
+    }
+
+    function collectCurrentState() {
+      const logs = loadAllLogs();
+      const dateStr = els.logDate.value;
+      const day = logs[dateStr] || { morning: {}, night: {}, nutrition: {} };
+
+      day[currentPeriod] = {
+        bpSys: els.bpSys.value.trim(),
+        bpDia: els.bpDia.value.trim(),
+        hr: els.hr.value.trim(),
+        waist: els.waist.value.trim(),
+        weight: els.weight.value.trim(),
+        symptom: els.symptom.value.trim() || "自覚症状なし",
+        presets: Array.from(activePresetIds)
+      };
+
+      day.nutrition = {
+        p: els.pGrams.value.trim(),
+        f: els.fGrams.value.trim(),
+        c: els.cGrams.value.trim(),
+        kcal: els.kcal.value.trim(),
+        activeKcal: els.activeKcal.value.trim(),
+        cardioLoad: els.cardioLoad.value.trim()
+      };
+
+      return { logs, dateStr, day };
+    }
+
+    function buildSlotLines(title, slot) {
+      if (!slot) return [`${title}`];
+      const lines = [`${title}`];
+      if (slot.bpSys || slot.bpDia || slot.hr) {
+        lines.push(`計測:${slot.bpSys || ""}/${slot.bpDia || ""} ${slot.hr || ""}`.trim());
+      }
+      const presetSet = new Set(slot.presets || []);
+      PRESETS_BY_PERIOD[title.startsWith("朝") ? "morning" : "night"].forEach((item) => {
+        if (presetSet.has(item.id)) {
+          lines.push(item.label);
+        }
+      });
+      if (slot.symptom) {
+        lines.push(slot.symptom);
+      }
+      if (slot.waist) lines.push(`胴囲:${slot.waist}`);
+      if (slot.weight) lines.push(`体重:${slot.weight}`);
+      return lines;
+    }
+
+    function formatLogText(logs, dateStr, day) {
+      const md = formatMonthDay(dateStr);
+      const morningLines = buildSlotLines("朝】", day.morning);
+      const nightLines = buildSlotLines("夜】", day.night);
+      const nut = day.nutrition || {};
+
+      const footer = [
+        `摂取PFC: ${nut.p || ""} ${nut.f || ""} ${nut.c || ""}`.trim(),
+        `摂取カロリー:${nut.kcal || ""}`,
+        `アクティブ消費:${nut.activeKcal || ""}`,
+        `カーディオ負荷:${nut.cardioLoad || ""}`
+      ];
+
+      const summary7d = build7DaySummary(logs, dateStr, day);
+
+      return [
+        md,
+        ...morningLines,
+        "",
+        ...nightLines,
+        "",
+        ...footer,
+        "",
+        summary7d
+      ].join("\n");
+    }
+
+    function updatePreview() {
+      const { logs, dateStr, day } = collectCurrentState();
+      els.formattedOutput.value = formatLogText(logs, dateStr, day);
+    }
+
+    els.saveAndCopyBtn.addEventListener("click", async () => {
+      const { logs, dateStr, day } = collectCurrentState();
+      logs[dateStr] = day;
+      saveAllLogs(logs);
+
+      const text = formatLogText(logs, dateStr, day);
+      els.formattedOutput.value = text;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        els.syncStatus.textContent = "保存＆コピー完了";
+      } catch {
+        els.formattedOutput.select();
+        document.execCommand("copy");
+        els.syncStatus.textContent = "保存＆コピー完了";
+      }
+    });
+
+    els.tabMorning.addEventListener("click", () => setPeriod("morning"));
+    els.tabNight.addEventListener("click", () => setPeriod("night"));
+    els.logDate.addEventListener("change", () => loadDateIntoForm(els.logDate.value));
+
+    [
+      els.bpSys, els.bpDia, els.hr, els.waist, els.weight,
+      els.symptom, els.pGrams, els.fGrams, els.cGrams,
+      els.kcal, els.activeKcal, els.cardioLoad
+    ].forEach((input) => input.addEventListener("input", updatePreview));
+
+    els.logDate.value = getTodayISO();
+    setPeriod(currentPeriod);
+  </script>
+</body>
+</html>
