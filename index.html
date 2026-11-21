@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Code_LiFE" />
@@ -12,57 +12,83 @@
     :root {
       --bg: #0f172a;
       --card: #1e293b;
+      --subcard: #0f172a;
       --text: #f8fafc;
       --muted: #94a3b8;
       --accent: #38bdf8;
       --accent-2: #22c55e;
+      --danger: #f87171;
       --border: #334155;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 16px;
+      padding: 14px 14px 86px;
       font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.45;
     }
-    .container { max-width: 560px; margin: 0 auto; }
-    h1 { font-size: 1.2rem; margin: 0 0 12px; }
+    .container { max-width: 600px; margin: 0 auto; }
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    h1 { font-size: 1.15rem; margin: 0; }
+    .status { font-size: 0.78rem; color: var(--accent); }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 14px;
+      padding: 13px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sub-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin: 10px 0 6px;
     }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
-    input, textarea, select {
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    label { display: block; font-size: 0.74rem; color: var(--muted); margin-bottom: 3px; }
+    input[type="text"], input[type="number"], textarea, select {
       width: 100%;
-      padding: 10px;
+      padding: 8px 9px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      background: #0f172a;
+      background: var(--subcard);
       color: var(--text);
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
+    input.val-blue { color: #38bdf8 !important; font-weight: 700; border-color: #0284c7; }
+    input.val-red { color: #f87171 !important; font-weight: 700; border-color: #dc2626; }
+    input.val-gray { color: #94a3b8 !important; }
+    .text-blue { color: #38bdf8; font-weight: 700; }
+    .text-red { color: #f87171; font-weight: 700; }
+    .text-gray { color: #94a3b8; }
+
     button {
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: #334155;
       color: var(--text);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
-    }
-    button.active {
-      background: var(--accent);
-      color: #0f172a;
-      font-weight: 700;
-      border-color: var(--accent);
     }
     button.primary {
       background: var(--accent-2);
@@ -71,185 +97,634 @@
       border-color: var(--accent-2);
       width: 100%;
       padding: 12px;
-      font-size: 1rem;
+      font-size: 0.98rem;
     }
-    .chip {
+    button.accent-btn {
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 700;
+      border-color: var(--accent);
+    }
+    button.danger-btn {
+      background: rgba(248, 113, 113, 0.15);
+      color: #fca5a5;
+      border-color: #7f1d1d;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+    }
+    .check-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 999px;
-      background: #0f172a;
+      background: var(--subcard);
       border: 1px solid var(--border);
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       cursor: pointer;
+      user-select: none;
     }
-    .chip.on {
-      background: rgba(56, 189, 248, 0.2);
+    .check-pill input { width: auto; margin: 0; }
+    .check-pill.on {
+      background: rgba(56, 189, 248, 0.18);
       border-color: var(--accent);
       color: #e0f2fe;
     }
+    .date-display {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .target-box {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px dashed var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .activity-item {
+      background: var(--subcard);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.84rem;
+    }
     textarea.output {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.85rem;
-      min-height: 360px;
+      font-size: 0.83rem;
+      min-height: 320px;
     }
-    .status { font-size: 0.8rem; color: var(--accent); margin-left: auto; }
-    .hint { font-size: 0.76rem; color: var(--muted); margin-top: 6px; }
+    .hidden { display: none !important; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* 下部ナビゲーション */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0b1120;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 6px 2px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .nav-btn.active {
+      color: var(--accent);
+      font-weight: 700;
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    /* カレンダー */
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+    .cal-head { font-size: 0.72rem; color: var(--muted); padding: 4px 0; }
+    .cal-cell {
+      padding: 8px 2px;
+      border-radius: 8px;
+      background: var(--subcard);
+      border: 1px solid var(--border);
+      font-size: 0.82rem;
+      cursor: pointer;
+      min-height: 44px;
+    }
+    .cal-cell.empty { background: transparent; border-color: transparent; cursor: default; }
+    .cal-cell.has-log { border-color: var(--accent-2); }
+    .cal-cell.selected { background: rgba(56, 189, 248, 0.25); border-color: var(--accent); font-weight: 700; }
+    .cal-dot { display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2); margin: 3px auto 0; }
+
+    /* グラフ & テーブル */
+    canvas.chart {
+      width: 100%;
+      height: 190px;
+      background: var(--subcard);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    table.log-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+      white-space: nowrap;
+    }
+    table.log-table th, table.log-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+    table.log-table th:first-child, table.log-table td:first-child {
+      text-align: left;
+      position: sticky;
+      left: 0;
+      background: var(--card);
+    }
+    table.log-table th { background: #0f172a; color: var(--muted); }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="row" style="margin-bottom:10px;">
+    <div class="header-bar">
       <h1>Code_LiFE</h1>
       <span id="syncStatus" class="status">待機中</span>
     </div>
 
-    <!-- 日付と朝・夜切り替え -->
-    <div class="card">
-      <div class="grid-2">
-        <div>
-          <label for="logDate">日付</label>
-          <input type="date" id="logDate" />
+    <!-- ==================== 1. ホームページ ==================== -->
+    <div id="page-home" class="page active">
+      <!-- ① 日付表示（カレンダーピッカーなし・前後移動のみ） -->
+      <div class="card">
+        <div class="row" style="justify-content:space-between;">
+          <button type="button" id="prevDateBtn">◀ 前日</button>
+          <div id="dateTextDisplay" class="date-display">2026-11-21</div>
+          <button type="button" id="nextDateBtn">翌日 ▶</button>
+        </div>
+      </div>
+
+      <!-- ③ Vitals(体調)：朝・夜を上下配置 -->
+      <div class="card">
+        <div class="section-title">
+          <span>Vitals(体調) - 朝</span>
+          <label class="check-pill" id="mNoRecordLabel">
+            <input type="checkbox" id="mNoRecord" /> 記録なし
+          </label>
+        </div>
+        <div id="mVitalsBody">
+          <div class="grid-3" style="margin-bottom:8px;">
+            <div>
+              <label for="mBpSys">血圧(上)</label>
+              <input type="number" id="mBpSys" inputmode="numeric" placeholder="0" />
+            </div>
+            <div>
+              <label for="mBpDia">血圧(下)</label>
+              <input type="number" id="mBpDia" inputmode="numeric" placeholder="0" />
+            </div>
+            <div>
+              <label for="mHr">脈拍</label>
+              <input type="number" id="mHr" inputmode="numeric" placeholder="0" />
+            </div>
+          </div>
+          <div class="row" style="align-items:flex-end;">
+            <div style="flex:1;">
+              <label for="mSymptom">自覚症状</label>
+              <input type="text" id="mSymptom" value="自覚症状なし" />
+            </div>
+            <div>
+              <label class="check-pill" id="mIhbPill">
+                <input type="checkbox" id="mIhb" /> IHB: <span id="mIhbText">なし</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          <span>Vitals(体調) - 夜</span>
+          <label class="check-pill" id="nNoRecordLabel">
+            <input type="checkbox" id="nNoRecord" /> 記録なし
+          </label>
+        </div>
+        <div id="nVitalsBody">
+          <div class="grid-3" style="margin-bottom:8px;">
+            <div>
+              <label for="nBpSys">血圧(上)</label>
+              <input type="number" id="nBpSys" inputmode="numeric" placeholder="0" />
+            </div>
+            <div>
+              <label for="nBpDia">血圧(下)</label>
+              <input type="number" id="nBpDia" inputmode="numeric" placeholder="0" />
+            </div>
+            <div>
+              <label for="nHr">脈拍</label>
+              <input type="number" id="nHr" inputmode="numeric" placeholder="0" />
+            </div>
+          </div>
+          <div class="row" style="align-items:flex-end;">
+            <div style="flex:1;">
+              <label for="nSymptom">自覚症状</label>
+              <input type="text" id="nSymptom" value="自覚症状なし" />
+            </div>
+            <div>
+              <label class="check-pill" id="nIhbPill">
+                <input type="checkbox" id="nIhb" /> IHB: <span id="nIhbText">なし</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ Body(体組成) -->
+      <div class="card">
+        <div class="section-title">
+          <span>Body(体組成)</span>
+          <span style="font-size:0.72rem; color:var(--muted);">青:±1.5%以内 / 赤:±5%以上</span>
+        </div>
+        <div class="grid-2" style="margin-bottom:8px;">
+          <div>
+            <label for="waist">胴囲 (cm)</label>
+            <input type="number" step="0.1" id="waist" inputmode="decimal" placeholder="0" />
+          </div>
+          <div>
+            <label for="weight">体重 (kg)</label>
+            <input type="number" step="0.01" id="weight" inputmode="decimal" placeholder="0" />
+          </div>
+        </div>
+        <div class="grid-3" style="margin-bottom:8px;">
+          <div>
+            <label for="bfp">体脂肪率 (%)</label>
+            <input type="number" step="0.1" id="bfp" inputmode="decimal" placeholder="0" />
+          </div>
+          <div>
+            <label for="bmi">BMI</label>
+            <input type="number" step="0.1" id="bmi" inputmode="decimal" placeholder="0" />
+          </div>
+          <div>
+            <label for="visceralFat">内臓脂肪レベル</label>
+            <input type="number" step="0.5" id="visceralFat" inputmode="decimal" placeholder="0" />
+          </div>
+        </div>
+        <div class="grid-2" style="margin-bottom:8px;">
+          <div>
+            <label for="bmr">基礎代謝 (kcal)</label>
+            <input type="number" step="1" id="bmr" inputmode="numeric" placeholder="0" />
+          </div>
+          <div>
+            <label for="bodyTemp">体温 (℃)</label>
+            <input type="number" step="0.1" id="bodyTemp" inputmode="decimal" placeholder="0" />
+          </div>
+        </div>
+        <div class="target-box">
+          <div style="font-weight:700; margin-bottom:4px; color:#cbd5e1;">Body 目標値</div>
+          <div class="grid-2">
+            <div>
+              <label for="targetWaist">目標 胴囲 (cm)</label>
+              <input type="number" step="0.1" id="targetWaist" inputmode="decimal" placeholder="85.0" />
+            </div>
+            <div>
+              <label for="targetWeight">目標 体重 (kg)</label>
+              <input type="number" step="0.1" id="targetWeight" inputmode="decimal" placeholder="65.0" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑤ Intake(摂取) & サプリメント -->
+      <div class="card">
+        <div class="section-title">
+          <span>Intake(摂取)</span>
+          <span style="font-size:0.72rem; color:var(--muted);">青:±10g/100kcal以内 / 赤:±25g/250kcal以上</span>
+        </div>
+        <div class="grid-4" style="margin-bottom:6px;">
+          <div>
+            <label for="pGrams">P (g)</label>
+            <input type="number" step="0.1" id="pGrams" inputmode="decimal" placeholder="0" />
+          </div>
+          <div>
+            <label for="fGrams">F (g)</label>
+            <input type="number" step="0.1" id="fGrams" inputmode="decimal" placeholder="0" />
+          </div>
+          <div>
+            <label for="cGrams">C (g)</label>
+            <input type="number" step="0.1" id="cGrams" inputmode="decimal" placeholder="0" />
+          </div>
+          <div>
+            <label for="kcal">カロリー</label>
+            <input type="number" step="0.1" id="kcal" inputmode="decimal" placeholder="0" />
+          </div>
+        </div>
+        <div id="intakeTargetDisplay" style="font-size:0.76rem; color:var(--accent); margin-bottom:8px;">
+          目標値: P -g / F -g / C -g / -kcal
+        </div>
+
+        <div class="target-box" style="margin-bottom:10px;">
+          <div style="font-weight:700; margin-bottom:4px; color:#cbd5e1;">Intake 目標値設定</div>
+          <div class="grid-4">
+            <div>
+              <label for="targetP">目標P</label>
+              <input type="number" step="0.1" id="targetP" inputmode="decimal" placeholder="120" />
+            </div>
+            <div>
+              <label for="targetF">目標F</label>
+              <input type="number" step="0.1" id="targetF" inputmode="decimal" placeholder="50" />
+            </div>
+            <div>
+              <label for="targetC">目標C</label>
+              <input type="number" step="0.1" id="targetC" inputmode="decimal" placeholder="220" />
+            </div>
+            <div>
+              <label for="targetKcal">目標kcal</label>
+              <input type="number" step="1" id="targetKcal" inputmode="numeric" placeholder="1800" />
+            </div>
+          </div>
+        </div>
+
+        <div class="sub-title">サプリメント</div>
+        <div class="row" style="margin-bottom:8px;">
+          <label class="check-pill" id="suppHmbPill">
+            <input type="checkbox" id="suppHmb" /> HMB1000mg
+          </label>
+          <label class="check-pill" id="suppAminoPill">
+            <input type="checkbox" id="suppAmino" /> アミノ酸1200mg
+          </label>
         </div>
         <div>
-          <label>時間帯</label>
-          <div class="row">
-            <button type="button" id="tabMorning" class="active" style="flex:1;">朝</button>
-            <button type="button" id="tabNight" style="flex:1;">夜</button>
+          <label for="suppCustom">サプリメント手入力</label>
+          <input type="text" id="suppCustom" placeholder="例: ビタミンD 1錠" />
+        </div>
+      </div>
+
+      <!-- ⑥ Active(活動) -->
+      <div class="card">
+        <div class="section-title"><span>Active(活動)</span></div>
+        <div class="grid-2" style="margin-bottom:10px;">
+          <div>
+            <label for="activeKcal">アクティブ消費 (kcal)</label>
+            <input type="number" step="1" id="activeKcal" inputmode="numeric" placeholder="0" />
+          </div>
+          <div>
+            <label for="cardioLoad">カーディオ負荷</label>
+            <input type="number" step="1" id="cardioLoad" inputmode="numeric" placeholder="0" />
+          </div>
+        </div>
+
+        <div class="sub-title">活動内容を追加</div>
+        <div style="margin-bottom:6px;">
+          <label for="myListSelect">Myリストから選択（選択で自動入力）</label>
+          <select id="myListSelect">
+            <option value="">-- 手入力 / Myリストから選択 --</option>
+          </select>
+        </div>
+        <div class="grid-2" style="margin-bottom:6px;">
+          <div>
+            <label for="actCategory">区分</label>
+            <select id="actCategory">
+              <option value="筋トレ">筋トレ</option>
+              <option value="運動">運動</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div>
+            <label for="actName">活動内容</label>
+            <input type="text" id="actName" placeholder="例: BD5分 / ロードバイク" />
+          </div>
+        </div>
+        <div class="grid-3" style="margin-bottom:8px;">
+          <div>
+            <label for="actTimeType">Time区分</label>
+            <select id="actTimeType">
+              <option value="回数">回数</option>
+              <option value="時間">時間</option>
+            </select>
+          </div>
+          <div>
+            <label for="actTimeVal">数値・時間</label>
+            <input type="text" id="actTimeVal" placeholder="例: 1回 / 3:30" />
+          </div>
+          <div>
+            <label for="actNote">備考</label>
+            <input type="text" id="actNote" placeholder="例: 60km" />
+          </div>
+        </div>
+        <button type="button" id="addActivityBtn" class="accent-btn" style="width:100%;">＋ 活動を追加</button>
+        <div id="activityListContainer" style="margin-top:8px;"></div>
+      </div>
+
+      <!-- ⑦ 保存＆AI検索用テキストコピー / 編集可能なText -->
+      <div class="card">
+        <button type="button" id="saveAndCopyBtn" class="primary" style="margin-bottom:10px;">
+          保存してAI検索用テキストをコピー
+        </button>
+        <div class="row" style="justify-content:space-between; margin-bottom:4px;">
+          <label for="formattedOutput" style="margin:0;">Text（手入力追記・編集可能）</label>
+          <button type="button" id="regenerateTextBtn" style="padding:4px 8px; font-size:0.75rem;">入力値から再生成</button>
+        </div>
+        <textarea id="formattedOutput" class="output"></textarea>
+      </div>
+    </div>
+
+    <!-- ==================== 2. Myリストページ ==================== -->
+    <div id="page-mylist" class="page">
+      <div class="card">
+        <div class="section-title"><span>Myリスト（活動内容マスタ）</span></div>
+        <div class="grid-2" style="margin-bottom:8px;">
+          <div>
+            <label for="myShortName">略名</label>
+            <input type="text" id="myShortName" placeholder="例: BD5分" />
+          </div>
+          <div>
+            <label for="myFullName">活動名</label>
+            <input type="text" id="myFullName" placeholder="例: ボディブレード" />
+          </div>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label for="myDetail">内容</label>
+          <input type="text" id="myDetail" placeholder="例: ボディブレード30秒+スクワット30秒×5セット" />
+        </div>
+        <button type="button" id="addMyListBtn" class="accent-btn" style="width:100%;">Myリストに登録</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span>登録済み活動内容リスト</span></div>
+        <div id="myListItems"></div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. カレンダーページ ==================== -->
+    <div id="page-calendar" class="page">
+      <div class="card">
+        <div class="row" style="justify-content:space-between; margin-bottom:10px;">
+          <button type="button" id="calPrevMonth">◀ 前月</button>
+          <strong id="calMonthLabel">2026年11月</strong>
+          <button type="button" id="calNextMonth">翌月 ▶</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div style="font-size:0.75rem; color:var(--muted); margin-top:8px;">
+          ※緑枠・点付きは記録あり。日付をタップするとホーム画面でその日の記録を開きます。
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span>履歴バックアップ（JSON）</span></div>
+        <div class="grid-2">
+          <button type="button" id="exportJsonBtn">JSONエクスポート</button>
+          <button type="button" id="importJsonBtn">JSONインポート</button>
+        </div>
+        <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;" />
+        <div id="backupInfo" style="font-size:0.76rem; color:var(--muted); margin-top:8px;">保存済み日数: 0日分</div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. データページ ==================== -->
+    <div id="page-data" class="page">
+      <div class="card">
+        <div class="section-title"><span>Vitals(体調) - 過去14日グラフ（朝/夜 最高血圧・脈拍）</span></div>
+        <canvas id="vitalsChart" class="chart" width="560" height="200"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span>Body(体組成) - 過去14日グラフ（体重・体脂肪率）</span></div>
+        <canvas id="bodyChart" class="chart" width="560" height="200"></canvas>
+      </div>
+
+      <div class="card">
+        <button type="button" id="toggleLogTableBtn" class="accent-btn" style="width:100%;">ログ（過去すべての数値履歴を表示）</button>
+        <div id="fullLogSection" class="hidden">
+          <div style="font-size:0.74rem; color:var(--muted); margin-top:8px;">
+            目標比：<span class="text-blue">青字 ±1.5%以内</span> / <span class="text-red">赤字 ±5%以上</span>
+          </div>
+          <div class="table-wrap">
+            <table class="log-table" id="fullLogTable"></table>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- 朝・夜 計測＆ルーティン -->
-    <div class="card">
-      <div class="grid-3" style="margin-bottom:10px;">
-        <div>
-          <label for="bpSys">血圧（上）</label>
-          <input type="number" id="bpSys" inputmode="numeric" placeholder="125" />
-        </div>
-        <div>
-          <label for="bpDia">血圧（下）</label>
-          <input type="number" id="bpDia" inputmode="numeric" placeholder="84" />
-        </div>
-        <div>
-          <label for="hr">脈拍</label>
-          <input type="number" id="hr" inputmode="numeric" placeholder="68" />
-        </div>
-      </div>
-
-      <div class="grid-2" style="margin-bottom:10px;">
-        <div>
-          <label for="waist">胴囲 (cm)</label>
-          <input type="number" step="0.1" id="waist" inputmode="decimal" placeholder="85" />
-        </div>
-        <div>
-          <label for="weight">体重 (kg)</label>
-          <input type="number" step="0.1" id="weight" inputmode="decimal" placeholder="66.1" />
-        </div>
-      </div>
-
-      <div style="margin-bottom:10px;">
-        <label>プリセット項目（タップで切替）</label>
-        <div class="row" id="presetChips"></div>
-      </div>
-
-      <div>
-        <label for="symptom">自覚症状</label>
-        <input type="text" id="symptom" value="自覚症状なし" />
-      </div>
-    </div>
-
-    <!-- 栄養・活動ログ -->
-    <div class="card">
-      <label>摂取PFC (P / F / C)</label>
-      <div class="grid-3" style="margin-bottom:10px;">
-        <input type="number" step="0.1" id="pGrams" inputmode="decimal" placeholder="P: 107.1" />
-        <input type="number" step="0.1" id="fGrams" inputmode="decimal" placeholder="F: 48.1" />
-        <input type="number" step="0.1" id="cGrams" inputmode="decimal" placeholder="C: 243.5" />
-      </div>
-
-      <div class="grid-3">
-        <div>
-          <label for="kcal">摂取カロリー</label>
-          <input type="number" step="0.1" id="kcal" inputmode="decimal" placeholder="1834.6" />
-        </div>
-        <div>
-          <label for="activeKcal">アクティブ消費</label>
-          <input type="number" step="1" id="activeKcal" inputmode="numeric" placeholder="18" />
-        </div>
-        <div>
-          <label for="cardioLoad">カーディオ負荷</label>
-          <input type="number" step="1" id="cardioLoad" inputmode="numeric" placeholder="3" />
-        </div>
-      </div>
-    </div>
-
-    <!-- 保存＆コピー -->
-    <div class="card">
-      <button type="button" id="saveAndCopyBtn" class="primary" style="margin-bottom:10px;">
-        保存してGemini用テキストをコピー
-      </button>
-      <label for="formattedOutput">整形テキスト（直近7日平均付き・Geminiへ貼り付け可能）</label>
-      <textarea id="formattedOutput" class="output" readonly></textarea>
-    </div>
-
-    <!-- JSONバックアップ・復元 -->
-    <div class="card">
-      <label>履歴バックアップ（JSON）</label>
-      <div class="grid-2">
-        <button type="button" id="exportJsonBtn">JSONエクスポート</button>
-        <button type="button" id="importJsonBtn">JSONインポート</button>
-      </div>
-      <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;" />
-      <div id="backupInfo" class="hint">保存済み日数: 0日分</div>
-    </div>
   </div>
 
+  <!-- 下部タブナビゲーション -->
+  <nav class="bottom-nav">
+    <button type="button" class="nav-btn active" data-page="home">ホーム</button>
+    <button type="button" class="nav-btn" data-page="mylist">Myリスト</button>
+    <button type="button" class="nav-btn" data-page="calendar">カレンダー</button>
+    <button type="button" class="nav-btn" data-page="data">データ</button>
+  </nav>
+
   <script>
-    const STORAGE_KEY = "daily_health_logs_v1";
+    const STORAGE_KEY = "daily_health_logs_v2";
+    const TARGETS_KEY = "code_life_targets_v1";
+    const MYLIST_KEY = "code_life_mylist_v1";
 
-    const PRESETS_BY_PERIOD = {
-      morning: [
-        { id: "hmb_m", label: "①HMB1000mg", defaultOn: true },
-        { id: "ihb_m", label: "IHBあり", defaultOn: true }
-      ],
-      night: [
-        { id: "hmb_n", label: "①HMB1000mg", defaultOn: true },
-        { id: "hgpp_n1", label: "②HGPP5回", defaultOn: true },
-        { id: "hgpp_n2", label: "③HGPP5回", defaultOn: true },
-        { id: "ihb_n", label: "IHBあり", defaultOn: true }
-      ]
-    };
-
-    let currentPeriod = new Date().getHours() < 12 ? "morning" : "night";
-    let activePresetIds = new Set();
+    let currentDateStr = getTodayISO();
+    let calYear = Number(currentDateStr.slice(0, 4));
+    let calMonth = Number(currentDateStr.slice(5, 7)) - 1;
+    let currentActivities = [];
+    let isTextManuallyEdited = false;
 
     const els = {
-      logDate: document.getElementById("logDate"),
-      tabMorning: document.getElementById("tabMorning"),
-      tabNight: document.getElementById("tabNight"),
-      bpSys: document.getElementById("bpSys"),
-      bpDia: document.getElementById("bpDia"),
-      hr: document.getElementById("hr"),
+      syncStatus: document.getElementById("syncStatus"),
+      dateTextDisplay: document.getElementById("dateTextDisplay"),
+      prevDateBtn: document.getElementById("prevDateBtn"),
+      nextDateBtn: document.getElementById("nextDateBtn"),
+
+      // Morning Vitals
+      mNoRecord: document.getElementById("mNoRecord"),
+      mVitalsBody: document.getElementById("mVitalsBody"),
+      mBpSys: document.getElementById("mBpSys"),
+      mBpDia: document.getElementById("mBpDia"),
+      mHr: document.getElementById("mHr"),
+      mSymptom: document.getElementById("mSymptom"),
+      mIhb: document.getElementById("mIhb"),
+      mIhbText: document.getElementById("mIhbText"),
+      mIhbPill: document.getElementById("mIhbPill"),
+
+      // Night Vitals
+      nNoRecord: document.getElementById("nNoRecord"),
+      nVitalsBody: document.getElementById("nVitalsBody"),
+      nBpSys: document.getElementById("nBpSys"),
+      nBpDia: document.getElementById("nBpDia"),
+      nHr: document.getElementById("nHr"),
+      nSymptom: document.getElementById("nSymptom"),
+      nIhb: document.getElementById("nIhb"),
+      nIhbText: document.getElementById("nIhbText"),
+      nIhbPill: document.getElementById("nIhbPill"),
+
+      // Body
       waist: document.getElementById("waist"),
       weight: document.getElementById("weight"),
-      symptom: document.getElementById("symptom"),
-      presetChips: document.getElementById("presetChips"),
+      bfp: document.getElementById("bfp"),
+      bmi: document.getElementById("bmi"),
+      visceralFat: document.getElementById("visceralFat"),
+      bmr: document.getElementById("bmr"),
+      bodyTemp: document.getElementById("bodyTemp"),
+      targetWaist: document.getElementById("targetWaist"),
+      targetWeight: document.getElementById("targetWeight"),
+
+      // Intake & Supplements
       pGrams: document.getElementById("pGrams"),
       fGrams: document.getElementById("fGrams"),
       cGrams: document.getElementById("cGrams"),
       kcal: document.getElementById("kcal"),
+      targetP: document.getElementById("targetP"),
+      targetF: document.getElementById("targetF"),
+      targetC: document.getElementById("targetC"),
+      targetKcal: document.getElementById("targetKcal"),
+      intakeTargetDisplay: document.getElementById("intakeTargetDisplay"),
+      suppHmb: document.getElementById("suppHmb"),
+      suppAmino: document.getElementById("suppAmino"),
+      suppHmbPill: document.getElementById("suppHmbPill"),
+      suppAminoPill: document.getElementById("suppAminoPill"),
+      suppCustom: document.getElementById("suppCustom"),
+
+      // Active
       activeKcal: document.getElementById("activeKcal"),
       cardioLoad: document.getElementById("cardioLoad"),
-      formattedOutput: document.getElementById("formattedOutput"),
+      myListSelect: document.getElementById("myListSelect"),
+      actCategory: document.getElementById("actCategory"),
+      actName: document.getElementById("actName"),
+      actTimeType: document.getElementById("actTimeType"),
+      actTimeVal: document.getElementById("actTimeVal"),
+      actNote: document.getElementById("actNote"),
+      addActivityBtn: document.getElementById("addActivityBtn"),
+      activityListContainer: document.getElementById("activityListContainer"),
+
+      // Text & Save
       saveAndCopyBtn: document.getElementById("saveAndCopyBtn"),
-      syncStatus: document.getElementById("syncStatus"),
+      regenerateTextBtn: document.getElementById("regenerateTextBtn"),
+      formattedOutput: document.getElementById("formattedOutput"),
+
+      // MyList
+      myShortName: document.getElementById("myShortName"),
+      myFullName: document.getElementById("myFullName"),
+      myDetail: document.getElementById("myDetail"),
+      addMyListBtn: document.getElementById("addMyListBtn"),
+      myListItems: document.getElementById("myListItems"),
+
+      // Calendar & Backup
+      calPrevMonth: document.getElementById("calPrevMonth"),
+      calNextMonth: document.getElementById("calNextMonth"),
+      calMonthLabel: document.getElementById("calMonthLabel"),
+      calGrid: document.getElementById("calGrid"),
       exportJsonBtn: document.getElementById("exportJsonBtn"),
       importJsonBtn: document.getElementById("importJsonBtn"),
       importFileInput: document.getElementById("importFileInput"),
-      backupInfo: document.getElementById("backupInfo")
+      backupInfo: document.getElementById("backupInfo"),
+
+      // Data
+      vitalsChart: document.getElementById("vitalsChart"),
+      bodyChart: document.getElementById("bodyChart"),
+      toggleLogTableBtn: document.getElementById("toggleLogTableBtn"),
+      fullLogSection: document.getElementById("fullLogSection"),
+      fullLogTable: document.getElementById("fullLogTable")
     };
 
     function getTodayISO() {
@@ -258,9 +733,13 @@
       return new Date(now - offset).toISOString().slice(0, 10);
     }
 
-    function formatMonthDay(isoDate) {
-      const [, m, d] = isoDate.split("-");
-      return `${Number(m)}/${Number(d)}`;
+    function shiftDate(isoStr, days) {
+      const [y, m, d] = isoStr.split("-").map(Number);
+      const dt = new Date(y, m - 1, d + days);
+      const yy = dt.getFullYear();
+      const mm = String(dt.getMonth() + 1).padStart(2, "0");
+      const dd = String(dt.getDate()).padStart(2, "0");
+      return `${yy}-${mm}-${dd}`;
     }
 
     function loadAllLogs() {
@@ -273,130 +752,126 @@
 
     function saveAllLogs(logs) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
-      updateBackupInfo(logs);
+      els.backupInfo.textContent = `保存済み日数: ${Object.keys(logs).length}日分`;
     }
 
-    function updateBackupInfo(logs = loadAllLogs()) {
-      const count = Object.keys(logs).length;
-      els.backupInfo.textContent = `保存済み日数: ${count}日分`;
+    function loadTargets() {
+      try {
+        return JSON.parse(localStorage.getItem(TARGETS_KEY) || "{}");
+      } catch {
+        return {};
+      }
     }
 
-    function toNum(val) {
-      if (val === undefined || val === null || String(val).trim() === "") return null;
-      const n = Number(val);
+    function saveTargets() {
+      const t = {
+        waist: els.targetWaist.value.trim(),
+        weight: els.targetWeight.value.trim(),
+        p: els.targetP.value.trim(),
+        f: els.targetF.value.trim(),
+        c: els.targetC.value.trim(),
+        kcal: els.targetKcal.value.trim()
+      };
+      localStorage.setItem(TARGETS_KEY, JSON.stringify(t));
+      updateTargetStyles();
+    }
+
+    function loadMyList() {
+      try {
+        const list = JSON.parse(localStorage.getItem(MYLIST_KEY) || "null");
+        if (Array.isArray(list)) return list;
+      } catch {}
+      return [
+        {
+          id: "preset_bd5",
+          shortName: "BD5分",
+          fullName: "ボディブレード",
+          detail: "ボディブレード30秒+スクワット30秒×5セット"
+        }
+      ];
+    }
+
+    function saveMyList(list) {
+      localStorage.setItem(MYLIST_KEY, JSON.stringify(list));
+      renderMyList();
+    }
+
+    function toNum(v) {
+      if (v === undefined || v === null || String(v).trim() === "") return null;
+      const n = Number(v);
       return Number.isFinite(n) ? n : null;
     }
 
-    function calcAvg(nums, decimals = 1) {
-      if (!nums.length) return null;
-      const sum = nums.reduce((acc, v) => acc + v, 0);
-      const avg = sum / nums.length;
-      const factor = Math.pow(10, decimals);
-      return (Math.round(avg * factor) / factor).toFixed(decimals);
-    }
+    // Vitals「記録なし」制御：データ1つでもあれば強制表示
+    function updateVitalsVisibility(slot) {
+      const isMorning = slot === "morning";
+      const chk = isMorning ? els.mNoRecord : els.nNoRecord;
+      const body = isMorning ? els.mVitalsBody : els.nVitalsBody;
+      const bpSys = isMorning ? els.mBpSys.value.trim() : els.nBpSys.value.trim();
+      const bpDia = isMorning ? els.mBpDia.value.trim() : els.nBpDia.value.trim();
+      const hr = isMorning ? els.mHr.value.trim() : els.nHr.value.trim();
 
-    function build7DaySummary(logs, baseDateStr, currentDayState) {
-      const mergedLogs = {
-        ...logs,
-        [baseDateStr]: currentDayState
-      };
+      const hasAnyData = (bpSys !== "" && bpSys !== "0") ||
+                         (bpDia !== "" && bpDia !== "0") ||
+                         (hr !== "" && hr !== "0");
 
-      const targetDates = Object.keys(mergedLogs)
-        .filter((d) => d <= baseDateStr)
-        .sort((a, b) => b.localeCompare(a))
-        .slice(0, 7);
-
-      if (!targetDates.length) {
-        return "--- 直近7日平均 ---\nデータなし";
+      if (hasAnyData) {
+        body.classList.remove("hidden");
+      } else {
+        body.classList.toggle("hidden", chk.checked);
       }
-
-      const mSys = [], mDia = [];
-      const nSys = [], nDia = [];
-      const weights = [];
-      const pList = [], fList = [], cList = [];
-      const cardioList = [];
-
-      targetDates.forEach((d) => {
-        const day = mergedLogs[d] || {};
-        const m = day.morning || {};
-        const n = day.night || {};
-        const nut = day.nutrition || {};
-
-        const ms = toNum(m.bpSys);
-        const md = toNum(m.bpDia);
-        if (ms !== null) mSys.push(ms);
-        if (md !== null) mDia.push(md);
-
-        const ns = toNum(n.bpSys);
-        const nd = toNum(n.bpDia);
-        if (ns !== null) nSys.push(ns);
-        if (nd !== null) nDia.push(nd);
-
-        const wNight = toNum(n.weight);
-        const wMorning = toNum(m.weight);
-        if (wNight !== null) weights.push(wNight);
-        else if (wMorning !== null) weights.push(wMorning);
-
-        const p = toNum(nut.p);
-        const f = toNum(nut.f);
-        const c = toNum(nut.c);
-        if (p !== null) pList.push(p);
-        if (f !== null) fList.push(f);
-        if (c !== null) cList.push(c);
-
-        const cardio = toNum(nut.cardioLoad);
-        if (cardio !== null) cardioList.push(cardio);
-      });
-
-      const mBpAvg = (mSys.length && mDia.length)
-        ? `${calcAvg(mSys, 1)}/${calcAvg(mDia, 1)}`
-        : "-";
-      const nBpAvg = (nSys.length && nDia.length)
-        ? `${calcAvg(nSys, 1)}/${calcAvg(nDia, 1)}`
-        : "-";
-
-      const weightAvg = weights.length ? `${calcAvg(weights, 1)}kg` : "-";
-      const pfcAvg = (pList.length || fList.length || cList.length)
-        ? `${calcAvg(pList, 1) ?? "-"} / ${calcAvg(fList, 1) ?? "-"} / ${calcAvg(cList, 1) ?? "-"}`
-        : "-";
-      const cardioAvg = cardioList.length ? `${calcAvg(cardioList, 1)}` : "-";
-
-      return [
-        `--- 直近${targetDates.length}日平均 ---`,
-        `血圧(朝/夜): ${mBpAvg} / ${nBpAvg}`,
-        `体重: ${weightAvg}`,
-        `PFC: ${pfcAvg}`,
-        `カーディオ負荷: ${cardioAvg}`
-      ].join("\n");
     }
 
-    function renderPresets() {
-      els.presetChips.innerHTML = "";
-      const list = PRESETS_BY_PERIOD[currentPeriod];
-      list.forEach((item) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        const isOn = activePresetIds.has(item.id);
-        btn.className = `chip ${isOn ? "on" : ""}`;
-        btn.textContent = `${isOn ? "✓ " : ""}${item.label}`;
-        btn.onclick = () => {
-          if (activePresetIds.has(item.id)) {
-            activePresetIds.delete(item.id);
-          } else {
-            activePresetIds.add(item.id);
-          }
-          renderPresets();
-          updatePreview();
-        };
-        els.presetChips.appendChild(btn);
-      });
+    function updateIhbVisuals() {
+      els.mIhbText.textContent = els.mIhb.checked ? "あり" : "なし";
+      els.mIhbPill.classList.toggle("on", els.mIhb.checked);
+      els.nIhbText.textContent = els.nIhb.checked ? "あり" : "なし";
+      els.nIhbPill.classList.toggle("on", els.nIhb.checked);
+      els.suppHmbPill.classList.toggle("on", els.suppHmb.checked);
+      els.suppAminoPill.classList.toggle("on", els.suppAmino.checked);
     }
 
-    function setPeriod(period) {
-      currentPeriod = period;
-      els.tabMorning.classList.toggle("active", period === "morning");
-      els.tabNight.classList.toggle("active", period === "night");
-      loadDateIntoForm(els.logDate.value);
+    // 目標比較の色判定（割合: ±1.5%以内=blue, ±5%以上=red, それ以外=gray）
+    function getPercentDiffClass(val, target) {
+      const v = toNum(val);
+      const t = toNum(target);
+      if (v === null || t === null || t === 0) return "gray";
+      const pct = Math.abs((v - t) / t) * 100;
+      if (pct <= 1.5) return "blue";
+      if (pct >= 5.0) return "red";
+      return "gray";
+    }
+
+    // 絶対差の色判定（PFC: ±10以内=blue, ±25以上=red / kcal: ±100以内=blue, ±250以上=red）
+    function getAbsDiffClass(val, target, blueThresh, redThresh) {
+      const v = toNum(val);
+      const t = toNum(target);
+      if (v === null || t === null) return "gray";
+      const diff = Math.abs(v - t);
+      if (diff <= blueThresh) return "blue";
+      if (diff >= redThresh) return "red";
+      return "gray";
+    }
+
+    function applyColorClass(inputEl, colorType) {
+      inputEl.classList.remove("val-blue", "val-red", "val-gray");
+      inputEl.classList.add(`val-${colorType}`);
+    }
+
+    function updateTargetStyles() {
+      applyColorClass(els.waist, getPercentDiffClass(els.waist.value, els.targetWaist.value));
+      applyColorClass(els.weight, getPercentDiffClass(els.weight.value, els.targetWeight.value));
+
+      applyColorClass(els.pGrams, getAbsDiffClass(els.pGrams.value, els.targetP.value, 10, 25));
+      applyColorClass(els.fGrams, getAbsDiffClass(els.fGrams.value, els.targetF.value, 10, 25));
+      applyColorClass(els.cGrams, getAbsDiffClass(els.cGrams.value, els.targetC.value, 10, 25));
+      applyColorClass(els.kcal, getAbsDiffClass(els.kcal.value, els.targetKcal.value, 100, 250));
+
+      const tp = els.targetP.value.trim() || "-";
+      const tf = els.targetF.value.trim() || "-";
+      const tc = els.targetC.value.trim() || "-";
+      const tk = els.targetKcal.value.trim() || "-";
+      els.intakeTargetDisplay.textContent = `目標値: P ${tp}g / F ${tf}g / C ${tc}g / ${tk}kcal`;
     }
 
     function extractNumericValue(raw) {
@@ -408,151 +883,610 @@
 
     function applyUrlParams() {
       const params = new URLSearchParams(window.location.search);
-      const paramGroups = [
+      const isNight = new Date().getHours() >= 12;
+      const mappings = [
+        { keys: ["weight", "wt"], input: els.weight },
+        { keys: ["waist"], input: els.waist },
+        { keys: ["bfp"], input: els.bfp },
+        { keys: ["bmi"], input: els.bmi },
+        { keys: ["vfat", "visceral_fat"], input: els.visceralFat },
+        { keys: ["bmr"], input: els.bmr },
+        { keys: ["temp", "body_temp"], input: els.bodyTemp },
         { keys: ["p"], input: els.pGrams },
         { keys: ["f"], input: els.fGrams },
         { keys: ["c"], input: els.cGrams },
         { keys: ["kcal"], input: els.kcal },
-        { keys: ["weight", "wt"], input: els.weight },
-        { keys: ["waist"], input: els.waist },
-        { keys: ["bp_sys", "bps"], input: els.bpSys },
-        { keys: ["bp_dia", "bpd"], input: els.bpDia },
-        { keys: ["hr"], input: els.hr },
         { keys: ["active_kcal", "act"], input: els.activeKcal },
-        { keys: ["cardio_load", "cardio"], input: els.cardioLoad }
+        { keys: ["cardio_load", "cardio"], input: els.cardioLoad },
+        { keys: ["bp_sys", "bps"], input: isNight ? els.nBpSys : els.mBpSys },
+        { keys: ["bp_dia", "bpd"], input: isNight ? els.nBpDia : els.mBpDia },
+        { keys: ["hr"], input: isNight ? els.nHr : els.mHr }
       ];
 
-      let appliedCount = 0;
-      paramGroups.forEach(({ keys, input }) => {
-        for (const key of keys) {
-          if (!params.has(key)) continue;
-          const cleaned = extractNumericValue(params.get(key));
-          if (cleaned !== "") {
-            input.value = cleaned;
-            appliedCount++;
+      let count = 0;
+      mappings.forEach(({ keys, input }) => {
+        for (const k of keys) {
+          if (!params.has(k)) continue;
+          const numStr = extractNumericValue(params.get(k));
+          if (numStr !== "") {
+            input.value = numStr;
+            count++;
             break;
           }
         }
       });
 
-      els.syncStatus.textContent = appliedCount > 0
-        ? `URLから${appliedCount}項目反映`
+      els.syncStatus.textContent = count > 0
+        ? `URLから${count}項目反映`
         : "ローカル保存モード";
     }
 
-    function loadDateIntoForm(dateStr) {
-      const logs = loadAllLogs();
-      const day = logs[dateStr] || { morning: {}, night: {}, nutrition: {} };
-      const slot = day[currentPeriod] || {};
-      const nut = day.nutrition || {};
-
-      els.bpSys.value = slot.bpSys ?? "";
-      els.bpDia.value = slot.bpDia ?? "";
-      els.hr.value = slot.hr ?? "";
-      els.waist.value = slot.waist ?? day.morning?.waist ?? "";
-      els.weight.value = slot.weight ?? day.morning?.weight ?? "";
-      els.symptom.value = slot.symptom ?? "自覚症状なし";
-
-      const defaults = PRESETS_BY_PERIOD[currentPeriod]
-        .filter((x) => x.defaultOn)
-        .map((x) => x.id);
-      activePresetIds = new Set(slot.presets ?? defaults);
-
-      els.pGrams.value = nut.p ?? "";
-      els.fGrams.value = nut.f ?? "";
-      els.cGrams.value = nut.c ?? "";
-      els.kcal.value = nut.kcal ?? "";
-      els.activeKcal.value = nut.activeKcal ?? "";
-      els.cardioLoad.value = nut.cardioLoad ?? "";
-
-      applyUrlParams();
-      renderPresets();
-      updatePreview();
-    }
-
-    function collectCurrentState() {
-      const logs = loadAllLogs();
-      const dateStr = els.logDate.value;
-      const day = logs[dateStr] || { morning: {}, night: {}, nutrition: {} };
-
-      day[currentPeriod] = {
-        bpSys: els.bpSys.value.trim(),
-        bpDia: els.bpDia.value.trim(),
-        hr: els.hr.value.trim(),
-        waist: els.waist.value.trim(),
-        weight: els.weight.value.trim(),
-        symptom: els.symptom.value.trim() || "自覚症状なし",
-        presets: Array.from(activePresetIds)
-      };
-
-      day.nutrition = {
-        p: els.pGrams.value.trim(),
-        f: els.fGrams.value.trim(),
-        c: els.cGrams.value.trim(),
-        kcal: els.kcal.value.trim(),
-        activeKcal: els.activeKcal.value.trim(),
-        cardioLoad: els.cardioLoad.value.trim()
-      };
-
-      return { logs, dateStr, day };
-    }
-
-    function buildSlotLines(title, slot) {
-      if (!slot) return [`${title}`];
-      const lines = [`${title}`];
-      if (slot.bpSys || slot.bpDia || slot.hr) {
-        lines.push(`計測:${slot.bpSys || ""}/${slot.bpDia || ""} ${slot.hr || ""}`.trim());
-      }
-      const presetSet = new Set(slot.presets || []);
-      PRESETS_BY_PERIOD[title.startsWith("朝") ? "morning" : "night"].forEach((item) => {
-        if (presetSet.has(item.id)) {
-          lines.push(item.label);
-        }
+    function renderActivities() {
+      els.activityListContainer.innerHTML = "";
+      currentActivities.forEach((act, idx) => {
+        const div = document.createElement("div");
+        div.className = "activity-item";
+        const notePart = act.note ? ` / 備考:${act.note}` : "";
+        div.innerHTML = `
+          <div>
+            <strong>[${act.category}] ${act.name}</strong><br/>
+            <span style="color:var(--muted);">${act.timeType}: ${act.timeVal || "-"}${notePart}</span>
+          </div>
+        `;
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "danger-btn";
+        delBtn.textContent = "削除";
+        delBtn.onclick = () => {
+          currentActivities.splice(idx, 1);
+          renderActivities();
+          if (!isTextManuallyEdited) updatePreviewText();
+        };
+        div.appendChild(delBtn);
+        els.activityListContainer.appendChild(div);
       });
-      if (slot.symptom) {
-        lines.push(slot.symptom);
-      }
-      if (slot.waist) lines.push(`胴囲:${slot.waist}`);
-      if (slot.weight) lines.push(`体重:${slot.weight}`);
-      return lines;
     }
 
-    function formatLogText(logs, dateStr, day) {
-      const md = formatMonthDay(dateStr);
-      const morningLines = buildSlotLines("朝】", day.morning);
-      const nightLines = buildSlotLines("夜】", day.night);
-      const nut = day.nutrition || {};
+    function collectCurrentDayState() {
+      return {
+        morning: {
+          noRecord: els.mNoRecord.checked,
+          bpSys: els.mBpSys.value.trim(),
+          bpDia: els.mBpDia.value.trim(),
+          hr: els.mHr.value.trim(),
+          symptom: els.mSymptom.value.trim() || "自覚症状なし",
+          ihb: els.mIhb.checked
+        },
+        night: {
+          noRecord: els.nNoRecord.checked,
+          bpSys: els.nBpSys.value.trim(),
+          bpDia: els.nBpDia.value.trim(),
+          hr: els.nHr.value.trim(),
+          symptom: els.nSymptom.value.trim() || "自覚症状なし",
+          ihb: els.nIhb.checked
+        },
+        body: {
+          waist: els.waist.value.trim(),
+          weight: els.weight.value.trim(),
+          bfp: els.bfp.value.trim(),
+          bmi: els.bmi.value.trim(),
+          visceralFat: els.visceralFat.value.trim(),
+          bmr: els.bmr.value.trim(),
+          bodyTemp: els.bodyTemp.value.trim()
+        },
+        intake: {
+          p: els.pGrams.value.trim(),
+          f: els.fGrams.value.trim(),
+          c: els.cGrams.value.trim(),
+          kcal: els.kcal.value.trim(),
+          suppHmb: els.suppHmb.checked,
+          suppAmino: els.suppAmino.checked,
+          suppCustom: els.suppCustom.value.trim()
+        },
+        active: {
+          activeKcal: els.activeKcal.value.trim(),
+          cardioLoad: els.cardioLoad.value.trim(),
+          activities: [...currentActivities]
+        }
+      };
+    }
 
-      const footer = [
-        `摂取PFC: ${nut.p || ""} ${nut.f || ""} ${nut.c || ""}`.trim(),
-        `摂取カロリー:${nut.kcal || ""}`,
-        `アクティブ消費:${nut.activeKcal || ""}`,
-        `カーディオ負荷:${nut.cardioLoad || ""}`
+    function formatVitalsBlock(title, v) {
+      const hasData = (v.bpSys && v.bpSys !== "0") || (v.bpDia && v.bpDia !== "0") || (v.hr && v.hr !== "0");
+      if (v.noRecord && !hasData) {
+        return [`${title}: 記録なし`];
+      }
+      return [
+        `${title}:`,
+        `  計測: ${v.bpSys || "0"}/${v.bpDia || "0"} 脈拍:${v.hr || "0"}`,
+        `  IHB: ${v.ihb ? "あり" : "なし"} / ${v.symptom}`
       ];
+    }
 
-      const summary7d = build7DaySummary(logs, dateStr, day);
+    function buildFormattedText(dateStr, state) {
+      const [, m, d] = dateStr.split("-");
+      const md = `${Number(m)}/${Number(d)}`;
+      const b = state.body;
+      const inc = state.intake;
+      const act = state.active;
+
+      const supps = [];
+      if (inc.suppHmb) supps.push("HMB1000mg");
+      if (inc.suppAmino) supps.push("アミノ酸1200mg");
+      if (inc.suppCustom) supps.push(inc.suppCustom);
+
+      const actLines = act.activities.length
+        ? act.activities.map((a) => `  ・[${a.category}] ${a.name} (${a.timeType}:${a.timeVal || "-"}${a.note ? " / " + a.note : ""})`)
+        : ["  なし"];
 
       return [
-        md,
-        ...morningLines,
+        `【${md} Code_LiFE】`,
+        "■ Vitals(体調)",
+        ...formatVitalsBlock("朝", state.morning),
+        ...formatVitalsBlock("夜", state.night),
         "",
-        ...nightLines,
+        "■ Body(体組成)",
+        `  胴囲:${b.waist || "0"}cm / 体重:${b.weight || "0"}kg`,
+        `  体脂肪率:${b.bfp || "0"}% / BMI:${b.bmi || "0"} / 内臓脂肪:${b.visceralFat || "0"}`,
+        `  基礎代謝:${b.bmr || "0"}kcal / 体温:${b.bodyTemp || "0"}℃`,
         "",
-        ...footer,
+        "■ Intake(摂取)",
+        `  PFC: P ${inc.p || "0"}g / F ${inc.f || "0"}g / C ${inc.c || "0"}g`,
+        `  摂取カロリー: ${inc.kcal || "0"}kcal`,
+        `  サプリメント: ${supps.length ? supps.join(", ") : "なし"}`,
         "",
-        summary7d
+        "■ Active(活動)",
+        `  アクティブ消費:${act.activeKcal || "0"}kcal / カーディオ負荷:${act.cardioLoad || "0"}`,
+        ...actLines
       ].join("\n");
     }
 
-    function updatePreview() {
-      const { logs, dateStr, day } = collectCurrentState();
-      els.formattedOutput.value = formatLogText(logs, dateStr, day);
+    function updatePreviewText() {
+      const state = collectCurrentDayState();
+      els.formattedOutput.value = buildFormattedText(currentDateStr, state);
     }
 
-    function exportJson() {
+    function loadDateIntoForm(dateStr, applyUrl = false) {
+      currentDateStr = dateStr;
+      els.dateTextDisplay.textContent = dateStr;
+      isTextManuallyEdited = false;
+
       const logs = loadAllLogs();
-      const jsonStr = JSON.stringify(logs, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json" });
+      const day = logs[dateStr] || {};
+      const m = day.morning || {};
+      const n = day.night || {};
+      const b = day.body || {};
+      const inc = day.intake || {};
+      const act = day.active || {};
+
+      els.mNoRecord.checked = Boolean(m.noRecord);
+      els.mBpSys.value = m.bpSys ?? "";
+      els.mBpDia.value = m.bpDia ?? "";
+      els.mHr.value = m.hr ?? "";
+      els.mSymptom.value = m.symptom ?? "自覚症状なし";
+      els.mIhb.checked = Boolean(m.ihb);
+
+      els.nNoRecord.checked = Boolean(n.noRecord);
+      els.nBpSys.value = n.bpSys ?? "";
+      els.nBpDia.value = n.bpDia ?? "";
+      els.nHr.value = n.hr ?? "";
+      els.nSymptom.value = n.symptom ?? "自覚症状なし";
+      els.nIhb.checked = Boolean(n.ihb);
+
+      els.waist.value = b.waist ?? "";
+      els.weight.value = b.weight ?? "";
+      els.bfp.value = b.bfp ?? "";
+      els.bmi.value = b.bmi ?? "";
+      els.visceralFat.value = b.visceralFat ?? "";
+      els.bmr.value = b.bmr ?? "";
+      els.bodyTemp.value = b.bodyTemp ?? "";
+
+      els.pGrams.value = inc.p ?? "";
+      els.fGrams.value = inc.f ?? "";
+      els.cGrams.value = inc.c ?? "";
+      els.kcal.value = inc.kcal ?? "";
+      els.suppHmb.checked = Boolean(inc.suppHmb);
+      els.suppAmino.checked = Boolean(inc.suppAmino);
+      els.suppCustom.value = inc.suppCustom ?? "";
+
+      els.activeKcal.value = act.activeKcal ?? "";
+      els.cardioLoad.value = act.cardioLoad ?? "";
+      currentActivities = Array.isArray(act.activities) ? [...act.activities] : [];
+
+      if (applyUrl) applyUrlParams();
+
+      updateVitalsVisibility("morning");
+      updateVitalsVisibility("night");
+      updateIhbVisuals();
+      updateTargetStyles();
+      renderActivities();
+
+      if (day.customText && !applyUrl) {
+        els.formattedOutput.value = day.customText;
+      } else {
+        updatePreviewText();
+      }
+    }
+
+    // Myリスト描画
+    function renderMyList() {
+      const list = loadMyList();
+      els.myListItems.innerHTML = "";
+      els.myListSelect.innerHTML = `<option value="">-- 手入力 / Myリストから選択 --</option>`;
+
+      list.forEach((item, idx) => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = `${item.shortName}（${item.fullName}）`;
+        els.myListSelect.appendChild(opt);
+
+        const card = document.createElement("div");
+        card.className = "activity-item";
+        card.innerHTML = `
+          <div>
+            <strong>${item.shortName}</strong>（${item.fullName}）<br/>
+            <span style="color:var(--muted);">${item.detail || "-"}</span>
+          </div>
+        `;
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "danger-btn";
+        del.textContent = "削除";
+        del.onclick = () => {
+          list.splice(idx, 1);
+          saveMyList(list);
+        };
+        card.appendChild(del);
+        els.myListItems.appendChild(card);
+      });
+    }
+
+    // カレンダー描画
+    function renderCalendar() {
+      const logs = loadAllLogs();
+      els.calMonthLabel.textContent = `${calYear}年${calMonth + 1}月`;
+      els.calGrid.innerHTML = "";
+
+      ["日", "月", "火", "水", "木", "金", "土"].forEach((w) => {
+        const h = document.createElement("div");
+        h.className = "cal-head";
+        h.textContent = w;
+        els.calGrid.appendChild(h);
+      });
+
+      const firstDay = new Date(calYear, calMonth, 1).getDay();
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "cal-cell empty";
+        els.calGrid.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const iso = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const cell = document.createElement("div");
+        const hasLog = Boolean(logs[iso]);
+        cell.className = `cal-cell ${hasLog ? "has-log" : ""} ${iso === currentDateStr ? "selected" : ""}`;
+        cell.innerHTML = `${d}${hasLog ? '<span class="cal-dot"></span>' : ""}`;
+        cell.onclick = () => {
+          loadDateIntoForm(iso, false);
+          switchPage("home");
+        };
+        els.calGrid.appendChild(cell);
+      }
+    }
+
+    // 簡易折れ線グラフ描画
+    function drawLineChart(canvas, labels, seriesList) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const pad = { top: 24, right: 16, bottom: 26, left: 38 };
+      const plotW = w - pad.left - pad.right;
+      const plotH = h - pad.top - pad.bottom;
+
+      const allVals = seriesList.flatMap((s) => s.data.filter((v) => v !== null));
+      if (!allVals.length) {
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "14px sans-serif";
+        ctx.fillText("データがありません", w / 2 - 60, h / 2);
+        return;
+      }
+
+      let minV = Math.min(...allVals);
+      let maxV = Math.max(...allVals);
+      if (minV === maxV) { minV -= 1; maxV += 1; }
+      const margin = (maxV - minV) * 0.1;
+      minV -= margin;
+      maxV += margin;
+
+      // グリッド線
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (plotH * i) / 4;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+
+        const valLabel = (maxV - ((maxV - minV) * i) / 4).toFixed(1);
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "11px sans-serif";
+        ctx.fillText(valLabel, 4, y + 4);
+      }
+
+      // X軸ラベル
+      labels.forEach((lbl, idx) => {
+        if (idx % 2 !== 0 && labels.length > 7) return;
+        const x = pad.left + (plotW * idx) / Math.max(1, labels.length - 1);
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "10px sans-serif";
+        ctx.fillText(lbl, x - 12, h - 8);
+      });
+
+      // 凡例 & 折れ線
+      seriesList.forEach((s, sIdx) => {
+        ctx.fillStyle = s.color;
+        ctx.font = "11px sans-serif";
+        ctx.fillText(`● ${s.label}`, pad.left + sIdx * 115, 14);
+
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        let started = false;
+        s.data.forEach((v, idx) => {
+          if (v === null) return;
+          const x = pad.left + (plotW * idx) / Math.max(1, labels.length - 1);
+          const y = pad.top + plotH - ((v - minV) / (maxV - minV)) * plotH;
+          if (!started) {
+            ctx.moveTo(x, y);
+            started = true;
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        ctx.stroke();
+
+        s.data.forEach((v, idx) => {
+          if (v === null) return;
+          const x = pad.left + (plotW * idx) / Math.max(1, labels.length - 1);
+          const y = pad.top + plotH - ((v - minV) / (maxV - minV)) * plotH;
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      });
+    }
+
+    function renderDataPage() {
+      const logs = loadAllLogs();
+      const dates14 = [];
+      for (let i = 13; i >= 0; i--) {
+        dates14.push(shiftDate(getTodayISO(), -i));
+      }
+      const labels14 = dates14.map((d) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`);
+
+      const mSys = dates14.map((d) => toNum(logs[d]?.morning?.bpSys));
+      const nSys = dates14.map((d) => toNum(logs[d]?.night?.bpSys));
+      const mHr = dates14.map((d) => toNum(logs[d]?.morning?.hr));
+      drawLineChart(els.vitalsChart, labels14, [
+        { label: "朝 血圧(上)", color: "#38bdf8", data: mSys },
+        { label: "夜 血圧(上)", color: "#f87171", data: nSys },
+        { label: "朝 脈拍", color: "#22c55e", data: mHr }
+      ]);
+
+      const weights = dates14.map((d) => toNum(logs[d]?.body?.weight));
+      const bfps = dates14.map((d) => toNum(logs[d]?.body?.bfp));
+      drawLineChart(els.bodyChart, labels14, [
+        { label: "体重(kg)", color: "#38bdf8", data: weights },
+        { label: "体脂肪率(%)", color: "#facc15", data: bfps }
+      ]);
+
+      // 全期間ログテーブル生成
+      const allDates = Object.keys(logs).sort((a, b) => b.localeCompare(a));
+      const tWeight = els.targetWeight.value;
+      const tWaist = els.targetWaist.value;
+
+      let html = `
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>朝BP/HR</th>
+            <th>夜BP/HR</th>
+            <th>体重</th>
+            <th>胴囲</th>
+            <th>体脂肪</th>
+            <th>BMI</th>
+            <th>内臓脂肪</th>
+            <th>基礎代謝</th>
+            <th>体温</th>
+            <th>PFC</th>
+            <th>kcal</th>
+          </tr>
+        </thead>
+        <tbody>
+      `;
+
+      if (!allDates.length) {
+        html += `<tr><td colspan="12" style="text-align:center; color:var(--muted);">履歴データがありません</td></tr>`;
+      } else {
+        allDates.forEach((d) => {
+          const day = logs[d] || {};
+          const m = day.morning || {};
+          const n = day.night || {};
+          const b = day.body || {};
+          const inc = day.intake || {};
+
+          const wCls = getPercentDiffClass(b.weight, tWeight);
+          const waistCls = getPercentDiffClass(b.waist, tWaist);
+
+          html += `
+            <tr>
+              <td>${d}</td>
+              <td>${m.noRecord ? "記録なし" : `${m.bpSys || "-"}/${m.bpDia || "-"} (${m.hr || "-"})`}</td>
+              <td>${n.noRecord ? "記録なし" : `${n.bpSys || "-"}/${n.bpDia || "-"} (${n.hr || "-"})`}</td>
+              <td class="text-${wCls}">${b.weight || "-"}</td>
+              <td class="text-${waistCls}">${b.waist || "-"}</td>
+              <td>${b.bfp || "-"}</td>
+              <td>${b.bmi || "-"}</td>
+              <td>${b.visceralFat || "-"}</td>
+              <td>${b.bmr || "-"}</td>
+              <td>${b.bodyTemp || "-"}</td>
+              <td>${inc.p || "-"}/${inc.f || "-"}/${inc.c || "-"}</td>
+              <td>${inc.kcal || "-"}</td>
+            </tr>
+          `;
+        });
+      }
+      html += `</tbody>`;
+      els.fullLogTable.innerHTML = html;
+    }
+
+    function switchPage(pageName) {
+      document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+      document.getElementById(`page-${pageName}`).classList.add("active");
+      document.querySelectorAll(".nav-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.page === pageName);
+      });
+      if (pageName === "calendar") renderCalendar();
+      if (pageName === "data") renderDataPage();
+    }
+
+    // イベント登録
+    document.querySelectorAll(".nav-btn").forEach((btn) => {
+      btn.addEventListener("click", () => switchPage(btn.dataset.page));
+    });
+
+    els.prevDateBtn.addEventListener("click", () => loadDateIntoForm(shiftDate(currentDateStr, -1), false));
+    els.nextDateBtn.addEventListener("click", () => loadDateIntoForm(shiftDate(currentDateStr, 1), false));
+
+    [els.mNoRecord, els.mBpSys, els.mBpDia, els.mHr].forEach((el) => {
+      el.addEventListener("input", () => {
+        updateVitalsVisibility("morning");
+        if (!isTextManuallyEdited) updatePreviewText();
+      });
+    });
+
+    [els.nNoRecord, els.nBpSys, els.nBpDia, els.nHr].forEach((el) => {
+      el.addEventListener("input", () => {
+        updateVitalsVisibility("night");
+        if (!isTextManuallyEdited) updatePreviewText();
+      });
+    });
+
+    [els.mIhb, els.nIhb, els.suppHmb, els.suppAmino].forEach((el) => {
+      el.addEventListener("change", () => {
+        updateIhbVisuals();
+        if (!isTextManuallyEdited) updatePreviewText();
+      });
+    });
+
+    [els.targetWaist, els.targetWeight, els.targetP, els.targetF, els.targetC, els.targetKcal].forEach((el) => {
+      el.addEventListener("input", saveTargets);
+    });
+
+    [
+      els.waist, els.weight, els.bfp, els.bmi, els.visceralFat, els.bmr, els.bodyTemp,
+      els.pGrams, els.fGrams, els.cGrams, els.kcal, els.suppCustom,
+      els.activeKcal, els.cardioLoad, els.mSymptom, els.nSymptom
+    ].forEach((el) => {
+      el.addEventListener("input", () => {
+        updateTargetStyles();
+        if (!isTextManuallyEdited) updatePreviewText();
+      });
+    });
+
+    els.formattedOutput.addEventListener("input", () => {
+      isTextManuallyEdited = true;
+    });
+
+    els.regenerateTextBtn.addEventListener("click", () => {
+      isTextManuallyEdited = false;
+      updatePreviewText();
+    });
+
+    els.myListSelect.addEventListener("change", () => {
+      const id = els.myListSelect.value;
+      if (!id) return;
+      const item = loadMyList().find((x) => x.id === id);
+      if (item) {
+        els.actName.value = item.shortName;
+        els.actNote.value = item.detail || "";
+      }
+    });
+
+    els.addActivityBtn.addEventListener("click", () => {
+      const name = els.actName.value.trim();
+      if (!name) return;
+      currentActivities.push({
+        category: els.actCategory.value,
+        name,
+        timeType: els.actTimeType.value,
+        timeVal: els.actTimeVal.value.trim(),
+        note: els.actNote.value.trim()
+      });
+      els.actName.value = "";
+      els.actTimeVal.value = "";
+      els.actNote.value = "";
+      els.myListSelect.value = "";
+      renderActivities();
+      if (!isTextManuallyEdited) updatePreviewText();
+    });
+
+    els.addMyListBtn.addEventListener("click", () => {
+      const shortName = els.myShortName.value.trim();
+      const fullName = els.myFullName.value.trim();
+      const detail = els.myDetail.value.trim();
+      if (!shortName && !fullName) return;
+      const list = loadMyList();
+      list.push({
+        id: `my_${Date.now()}`,
+        shortName: shortName || fullName,
+        fullName: fullName || shortName,
+        detail
+      });
+      saveMyList(list);
+      els.myShortName.value = "";
+      els.myFullName.value = "";
+      els.myDetail.value = "";
+    });
+
+    els.saveAndCopyBtn.addEventListener("click", async () => {
+      const logs = loadAllLogs();
+      const state = collectCurrentDayState();
+      state.customText = els.formattedOutput.value;
+      logs[currentDateStr] = state;
+      saveAllLogs(logs);
+
+      try {
+        await navigator.clipboard.writeText(els.formattedOutput.value);
+        els.syncStatus.textContent = "保存＆AI検索用コピー完了";
+      } catch {
+        els.formattedOutput.select();
+        document.execCommand("copy");
+        els.syncStatus.textContent = "保存＆AI検索用コピー完了";
+      }
+    });
+
+    els.calPrevMonth.addEventListener("click", () => {
+      calMonth--;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderCalendar();
+    });
+
+    els.calNextMonth.addEventListener("click", () => {
+      calMonth++;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderCalendar();
+    });
+
+    els.exportJsonBtn.addEventListener("click", () => {
+      const logs = loadAllLogs();
+      const blob = new Blob([JSON.stringify(logs, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -562,78 +1496,47 @@
       a.remove();
       URL.revokeObjectURL(url);
       els.syncStatus.textContent = "JSONエクスポート完了";
-    }
+    });
 
-    function handleImportFile(event) {
-      const file = event.target.files?.[0];
+    els.importJsonBtn.addEventListener("click", () => els.importFileInput.click());
+    els.importFileInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = () => {
         try {
           const parsed = JSON.parse(String(reader.result || "{}"));
-          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-            throw new Error("Invalid format");
-          }
-
-          const currentLogs = loadAllLogs();
-          const mergedLogs = { ...currentLogs };
-          let importedCount = 0;
-
-          Object.entries(parsed).forEach(([dateKey, dayVal]) => {
-            if (/^\d{4}-\d{2}-\d{2}$/.test(dateKey) && dayVal && typeof dayVal === "object") {
-              mergedLogs[dateKey] = dayVal;
-              importedCount++;
-            }
-          });
-
-          saveAllLogs(mergedLogs);
-          loadDateIntoForm(els.logDate.value);
-          els.syncStatus.textContent = `${importedCount}日分インポート完了`;
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
+          const merged = { ...loadAllLogs(), ...parsed };
+          saveAllLogs(merged);
+          loadDateIntoForm(currentDateStr, false);
+          renderCalendar();
+          els.syncStatus.textContent = "JSONインポート完了";
         } catch {
           els.syncStatus.textContent = "JSON読込エラー";
         } finally {
-          event.target.value = "";
+          e.target.value = "";
         }
       };
       reader.readAsText(file);
-    }
-
-    els.saveAndCopyBtn.addEventListener("click", async () => {
-      const { logs, dateStr, day } = collectCurrentState();
-      logs[dateStr] = day;
-      saveAllLogs(logs);
-
-      const text = formatLogText(logs, dateStr, day);
-      els.formattedOutput.value = text;
-
-      try {
-        await navigator.clipboard.writeText(text);
-        els.syncStatus.textContent = "保存＆コピー完了";
-      } catch {
-        els.formattedOutput.select();
-        document.execCommand("copy");
-        els.syncStatus.textContent = "保存＆コピー完了";
-      }
     });
 
-    els.exportJsonBtn.addEventListener("click", exportJson);
-    els.importJsonBtn.addEventListener("click", () => els.importFileInput.click());
-    els.importFileInput.addEventListener("change", handleImportFile);
+    els.toggleLogTableBtn.addEventListener("click", () => {
+      els.fullLogSection.classList.toggle("hidden");
+    });
 
-    els.tabMorning.addEventListener("click", () => setPeriod("morning"));
-    els.tabNight.addEventListener("click", () => setPeriod("night"));
-    els.logDate.addEventListener("change", () => loadDateIntoForm(els.logDate.value));
+    // 初期化
+    const savedTargets = loadTargets();
+    els.targetWaist.value = savedTargets.waist ?? "";
+    els.targetWeight.value = savedTargets.weight ?? "";
+    els.targetP.value = savedTargets.p ?? "";
+    els.targetF.value = savedTargets.f ?? "";
+    els.targetC.value = savedTargets.c ?? "";
+    els.targetKcal.value = savedTargets.kcal ?? "";
 
-    [
-      els.bpSys, els.bpDia, els.hr, els.waist, els.weight,
-      els.symptom, els.pGrams, els.fGrams, els.cGrams,
-      els.kcal, els.activeKcal, els.cardioLoad
-    ].forEach((input) => input.addEventListener("input", updatePreview));
-
-    els.logDate.value = getTodayISO();
-    updateBackupInfo();
-    setPeriod(currentPeriod);
+    renderMyList();
+    saveAllLogs(loadAllLogs());
+    loadDateIntoForm(currentDateStr, true);
   </script>
 </body>
 </html>
