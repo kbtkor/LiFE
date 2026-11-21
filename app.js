@@ -148,7 +148,6 @@ function saveAllLogs(logs) {
   els.backupInfo.textContent = `保存済み日数: ${Object.keys(logs).length}日分`;
 }
 
-// ② 目標値履歴管理（変更日以降継続・変更日以前はそのまま）
 function loadTargetHistory() {
   try {
     const raw = JSON.parse(localStorage.getItem(TARGETS_HISTORY_KEY) || "null");
@@ -269,7 +268,6 @@ function hasPositiveValue(v) {
   return n !== null && n !== 0;
 }
 
-// ① 空欄ミス赤枠警告（数値あり、もしくは計測なしチェックでクリア）
 function updateBlankWarnings() {
   const mSkipped = els.mNoRecord.checked;
   [els.mBpSys, els.mBpDia, els.mHr].forEach((inp) => {
@@ -304,6 +302,7 @@ function updateVitalsVisibility(slot) {
     hasPositiveValue(bpSys) || hasPositiveValue(bpDia) || hasPositiveValue(hr);
 
   if (hasAnyData) {
+    chk.checked = false;
     body.classList.remove("hidden");
   } else {
     body.classList.toggle("hidden", chk.checked);
@@ -354,7 +353,7 @@ function extractNumericValue(raw) {
   return match ? match[0] : "";
 }
 
-// 夜Vitalsが朝Vitalsに上書きされないよう、朝キーと夜キーを完全分離して反映
+// 保存済みデータを消さずに、URLパラメータに含まれる項目だけを上書き反映
 function applyUrlParams() {
   const params = new URLSearchParams(window.location.search);
   const mappings = [
@@ -395,11 +394,12 @@ function applyUrlParams() {
   });
 
   els.syncStatus.textContent = count > 0
-    ? `URLから${count}項目反映`
+    ? `URLから${count}項目反映（既存データ保持）`
     : "ローカル保存モード";
+
+  return count;
 }
 
-// ④ ホーム：入力済活動内容の編集・削除
 function resetActivityForm() {
   editingActivityIndex = null;
   els.actFormTitle.textContent = "活動内容を追加";
@@ -579,6 +579,7 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
   isTextManuallyEdited = false;
   resetActivityForm();
 
+  // 1. まず保存済みログを復元し、既存データを保持する
   const logs = loadAllLogs();
   const day = logs[dateStr] || {};
   const m = day.morning || {};
@@ -627,9 +628,12 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
   els.cardioLoad.value = act.cardioLoad ?? "";
   currentActivities = Array.isArray(act.activities) ? [...act.activities] : [];
 
-  if (applyUrl) applyUrlParams();
+  // 2. URLパラメータがある項目だけを後から上書き反映
+  let urlUpdatedCount = 0;
+  if (applyUrl) {
+    urlUpdatedCount = applyUrlParams();
+  }
 
-  // 該当日の有効目標値を入力欄へ反映（編集画面を開いたとき用）
   const effTargets = getEffectiveTargetsForDate(currentDateStr);
   els.targetWaist.value = effTargets.waist ?? "";
   els.targetWeight.value = effTargets.weight ?? "";
@@ -645,14 +649,15 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
   updateBlankWarnings();
   renderActivities();
 
-  if (day.customText && !applyUrl) {
+  if (urlUpdatedCount > 0) {
+    updatePreviewText();
+  } else if (day.customText) {
     els.formattedOutput.value = day.customText;
   } else {
     updatePreviewText();
   }
 }
 
-// ⑤ Myリスト：登録済内容の編集・削除
 function resetMyListForm() {
   editingMyListId = null;
   els.myListFormTitle.textContent = "Myリスト（活動内容マスタ登録）";
@@ -717,7 +722,6 @@ function renderMyList() {
   });
 }
 
-// カレンダー日本の祝日判定（日祝赤字・土曜青字）
 function getNthWeekdayOfMonth(year, month1Based, weekday0Sun, nth) {
   const first = new Date(year, month1Based - 1, 1);
   const diff = (weekday0Sun - first.getDay() + 7) % 7;
@@ -725,7 +729,6 @@ function getNthWeekdayOfMonth(year, month1Based, weekday0Sun, nth) {
 }
 
 function getEquinoxDay(year, isAutumn) {
-  // 1980-2099年向けの春分・秋分日近似式
   if (!isAutumn) {
     return Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
   }
@@ -734,32 +737,22 @@ function getEquinoxDay(year, isAutumn) {
 
 function isJapaneseHoliday(year, month1Based, day) {
   const fixedHolidays = new Set([
-    "01-01", // 元日
-    "02-11", // 建国記念の日
-    "02-23", // 天皇誕生日
-    "04-29", // 昭和の日
-    "05-03", // 憲法記念日
-    "05-04", // みどりの日
-    "05-05", // こどもの日
-    "08-11", // 山の日
-    "11-03", // 文化の日
-    "11-23"  // 勤労感謝の日
+    "01-01", "02-11", "02-23", "04-29", "05-03",
+    "05-04", "05-05", "08-11", "11-03", "11-23"
   ]);
 
   const mmdd = `${String(month1Based).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const movable = new Set();
 
-  if (month1Based === 1) movable.add(getNthWeekdayOfMonth(year, 1, 1, 2)); // 成人の日（第2月曜）
-  if (month1Based === 3) movable.add(getEquinoxDay(year, false)); // 春分の日
-  if (month1Based === 7) movable.add(getNthWeekdayOfMonth(year, 7, 1, 3)); // 海の日（第3月曜）
-  if (month1Based === 9) movable.add(getNthWeekdayOfMonth(year, 9, 1, 3)); // 敬老の日（第3月曜）
-  if (month1Based === 9) movable.add(getEquinoxDay(year, true)); // 秋分の日
-  if (month1Based === 10) movable.add(getNthWeekdayOfMonth(year, 10, 1, 2)); // スポーツの日（第2月曜）
+  if (month1Based === 1) movable.add(getNthWeekdayOfMonth(year, 1, 1, 2));
+  if (month1Based === 3) movable.add(getEquinoxDay(year, false));
+  if (month1Based === 7) movable.add(getNthWeekdayOfMonth(year, 7, 1, 3));
+  if (month1Based === 9) movable.add(getNthWeekdayOfMonth(year, 9, 1, 3));
+  if (month1Based === 9) movable.add(getEquinoxDay(year, true));
+  if (month1Based === 10) movable.add(getNthWeekdayOfMonth(year, 10, 1, 2));
 
-  const isDirectHoliday = fixedHolidays.has(mmdd) || movable.has(day);
-  if (isDirectHoliday) return true;
+  if (fixedHolidays.has(mmdd) || movable.has(day)) return true;
 
-  // 振替休日（日曜にあたる祝日の翌日以降の平日）
   const dt = new Date(year, month1Based - 1, day);
   if (dt.getDay() !== 0) {
     const prev = new Date(year, month1Based - 1, day - 1);
@@ -1004,7 +997,6 @@ function switchPage(pageName) {
   if (pageName === "data") renderDataPage();
 }
 
-// イベント登録
 document.querySelectorAll(".nav-btn").forEach((btn) => {
   btn.addEventListener("click", () => switchPage(btn.dataset.page));
 });
@@ -1012,7 +1004,6 @@ document.querySelectorAll(".nav-btn").forEach((btn) => {
 els.prevDateBtn.addEventListener("click", () => loadDateIntoForm(shiftDate(currentDateStr, -1), false));
 els.nextDateBtn.addEventListener("click", () => loadDateIntoForm(shiftDate(currentDateStr, 1), false));
 
-// ③ 目標値入力欄の折りたたみトグル
 els.toggleBodyTargetBtn.addEventListener("click", () => {
   const willOpen = els.bodyTargetEditor.classList.contains("hidden");
   els.bodyTargetEditor.classList.toggle("hidden", !willOpen);
@@ -1200,7 +1191,6 @@ els.importFileInput.addEventListener("change", (e) => {
       const parsed = JSON.parse(String(reader.result || "{}"));
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
 
-      // 新形式（logs / targetHistory / myList）と旧形式（日付キー直下）の両方に対応
       const importedLogs = parsed.logs && typeof parsed.logs === "object" ? parsed.logs : parsed;
       const merged = { ...loadAllLogs(), ...importedLogs };
       saveAllLogs(merged);
