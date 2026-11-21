@@ -19,7 +19,7 @@
 
     <!-- ==================== 1. ホームページ ==================== -->
     <div id="page-home" class="page active">
-      <!-- 日付移動 -->
+      <!-- 日付移動（カレンダーピッカーなし） -->
       <div class="card">
         <div class="row" style="justify-content:space-between;">
           <button type="button" id="prevDateBtn">◀ 前日</button>
@@ -142,8 +142,16 @@
             <input type="number" step="0.1" id="bodyTemp" inputmode="decimal" placeholder="0" />
           </div>
         </div>
-        <div class="target-box">
-          <div class="target-title">Body 目標値</div>
+
+        <div id="bodyTargetSummary" class="target-summary-line">
+          適用中の目標（胴囲 / 体重）: - cm / - kg
+        </div>
+        <button type="button" id="toggleBodyTargetBtn" class="mini-btn" style="margin-top:6px;">
+          Body 目標値設定を開く
+        </button>
+
+        <div id="bodyTargetEditor" class="target-box hidden">
+          <div class="target-title">Body 目標値設定（<span id="bodyTargetEffectiveDate"></span>以降に適用）</div>
           <div class="grid-2">
             <div>
               <label for="targetWaist">目標 胴囲 (cm)</label>
@@ -182,11 +190,14 @@
           </div>
         </div>
         <div id="intakeTargetDisplay" class="intake-target-text">
-          目標値: P -g / F -g / C -g / -kcal
+          適用中の目標値: P -g / F -g / C -g / -kcal
         </div>
+        <button type="button" id="toggleIntakeTargetBtn" class="mini-btn" style="margin-bottom:6px;">
+          Intake 目標値設定を開く
+        </button>
 
-        <div class="target-box" style="margin-bottom:10px;">
-          <div class="target-title">Intake 目標値設定</div>
+        <div id="intakeTargetEditor" class="target-box hidden" style="margin-bottom:10px;">
+          <div class="target-title">Intake 目標値設定（<span id="intakeTargetEffectiveDate"></span>以降に適用）</div>
           <div class="grid-4">
             <div>
               <label for="targetP">目標P</label>
@@ -250,7 +261,7 @@
           </div>
         </div>
 
-        <div class="sub-title">活動内容を追加</div>
+        <div class="sub-title" id="actFormTitle">活動内容を追加</div>
         <div style="margin-bottom:6px;">
           <label for="myListSelect">Myリストから選択（選択で自動入力）</label>
           <select id="myListSelect">
@@ -288,7 +299,10 @@
             <input type="text" id="actNote" placeholder="例: 60km" />
           </div>
         </div>
-        <button type="button" id="addActivityBtn" class="accent-btn full-btn">＋ 活動を追加</button>
+        <div class="row" style="gap:6px;">
+          <button type="button" id="addActivityBtn" class="accent-btn" style="flex:1;">＋ 活動を追加</button>
+          <button type="button" id="cancelActivityEditBtn" class="hidden">編集キャンセル</button>
+        </div>
         <div id="activityListContainer" style="margin-top:8px;"></div>
       </div>
 
@@ -308,7 +322,7 @@
     <!-- ==================== 2. Myリストページ ==================== -->
     <div id="page-mylist" class="page">
       <div class="card">
-        <div class="section-title"><span>Myリスト（活動内容マスタ）</span></div>
+        <div class="section-title"><span id="myListFormTitle">Myリスト（活動内容マスタ登録）</span></div>
         <div class="grid-2" style="margin-bottom:8px;">
           <div>
             <label for="myShortName">略名</label>
@@ -323,7 +337,10 @@
           <label for="myDetail">内容</label>
           <input type="text" id="myDetail" placeholder="例: ボディブレード30秒+スクワット30秒×5セット" />
         </div>
-        <button type="button" id="addMyListBtn" class="accent-btn full-btn">Myリストに登録</button>
+        <div class="row" style="gap:6px;">
+          <button type="button" id="addMyListBtn" class="accent-btn" style="flex:1;">Myリストに登録</button>
+          <button type="button" id="cancelMyListEditBtn" class="hidden">編集キャンセル</button>
+        </div>
       </div>
 
       <div class="card">
@@ -342,7 +359,7 @@
         </div>
         <div class="cal-grid" id="calGrid"></div>
         <div class="muted-note">
-          ※緑枠・点付きは記録あり。日付をタップするとホーム画面でその日の記録を開きます。
+          ※<span class="cal-sun-holiday">日祝は赤字</span>・<span class="cal-sat">土は青字</span>。緑枠・点付きは記録あり。日付をタップするとその日の記録を開きます。
         </div>
       </div>
 
