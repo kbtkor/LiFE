@@ -6,7 +6,6 @@
     t = t.replace(/[\r\n]+/g, "&").replace(/&+/g, "&").replace(/^&|&$/g, "");
     const params = new URLSearchParams(t);
 
-    // 時刻つき血圧(bp=HH:mm/上/下/脈拍)を12時で朝夜に振り分け(各枠は最新の1件)
     const slots = { m: null, n: null };
     params.getAll("bp").forEach((s) => {
       const [time, sys, dia, hr] = s.split("/");
@@ -27,34 +26,47 @@
     return params.toString();
   }
 
-  function importText(text) {
-    const qs = normalize(text);
-    if (!qs) {
-      els.syncStatus.textContent = "取り込める項目がありません";
-      return false;
-    }
-    history.replaceState({}, "", location.pathname + "?" + qs);
-    loadDateIntoForm(getTodayISO(), true);
-    history.replaceState({}, "", location.pathname);
-    els.syncStatus.textContent = els.syncStatus.textContent.replace("URLから", "取り込みで");
-    return true;
-  }
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "margin:0 0 12px;";
 
   const btn = document.createElement("button");
   btn.type = "button";
   btn.textContent = "ヘルスケアから取り込む";
   btn.style.cssText =
-    "width:100%;margin:8px 0;padding:12px;border:0;border-radius:12px;font-weight:700;background:#38bdf8;color:#0f172a;";
-  els.syncStatus.insertAdjacentElement("afterend", btn);
+    "display:block;width:100%;padding:14px;border:0;border-radius:12px;font-size:16px;font-weight:700;background:#38bdf8;color:#0f172a;";
+
+  const msg = document.createElement("div");
+  msg.style.cssText = "margin-top:6px;font-size:13px;color:#38bdf8;";
 
   const box = document.createElement("div");
   box.className = "hidden";
-  box.style.cssText = "margin:8px 0;";
+  box.style.cssText = "margin-top:8px;";
   box.innerHTML =
-    '<textarea rows="3" style="width:100%;" placeholder="ここに貼り付け"></textarea>' +
-    '<button type="button" style="width:100%;margin-top:6px;padding:10px;">反映</button>';
-  btn.insertAdjacentElement("afterend", box);
+    '<textarea rows="3" placeholder="ここに貼り付け" style="display:block;width:100%;box-sizing:border-box;padding:10px;border-radius:10px;"></textarea>' +
+    '<button type="button" style="display:block;width:100%;margin-top:6px;padding:12px;border-radius:10px;">反映</button>';
+
+  wrap.append(btn, msg, box);
+  const anchor = els.dateTextDisplay.closest(".card") || els.dateTextDisplay.parentElement;
+  anchor.insertAdjacentElement("beforebegin", wrap);
+
   const ta = box.querySelector("textarea");
+
+  function importText(text) {
+    const qs = normalize(text);
+    if (!qs) {
+      msg.textContent = "取り込める項目がありません";
+      return false;
+    }
+    history.replaceState({}, "", location.pathname + "?" + qs);
+    loadDateIntoForm(getTodayISO(), true);
+    history.replaceState({}, "", location.pathname);
+    const ok = els.syncStatus.textContent.includes("項目反映");
+    msg.textContent = ok
+      ? els.syncStatus.textContent.replace("URLから", "取り込みで")
+      : "取り込める項目がありませんでした";
+    return ok;
+  }
+
   box.querySelector("button").addEventListener("click", () => {
     if (importText(ta.value)) {
       ta.value = "";
@@ -67,7 +79,7 @@
       importText(await navigator.clipboard.readText());
     } catch {
       box.classList.remove("hidden");
-      els.syncStatus.textContent = "貼り付け枠に貼って「反映」を押してください";
+      msg.textContent = "読み取れませんでした。下の枠に貼り付けて「反映」を押してください";
     }
   });
 
