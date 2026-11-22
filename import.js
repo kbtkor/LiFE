@@ -1,10 +1,37 @@
 (function () {
+  function toN(v) {
+    const s = String(v ?? "").trim();
+    if (s === "") return null;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  // カロリー = P×4 + F×9 + C×4(整数に四捨五入)
+  function calcKcal() {
+    const p = toN(els.pGrams.value);
+    const f = toN(els.fGrams.value);
+    const c = toN(els.cGrams.value);
+    if (p === null && f === null && c === null) return "";
+    return String(Math.round((p || 0) * 4 + (f || 0) * 9 + (c || 0) * 4));
+  }
+
+  function syncKcal() {
+    els.kcal.value = calcKcal();
+    els.kcal.dispatchEvent(new Event("input"));
+  }
+
+  els.kcal.readOnly = true;
+  [els.pGrams, els.fGrams, els.cGrams].forEach((el) => el.addEventListener("input", syncKcal));
+
   function normalize(text) {
     let t = String(text || "").trim();
     const q = t.indexOf("?");
     if (q >= 0) t = t.slice(q + 1);
     t = t.replace(/[\r\n]+/g, "&").replace(/&+/g, "&").replace(/^&|&$/g, "");
     const params = new URLSearchParams(t);
+
+    // カロリーはヘルスケアから取り込まない
+    params.delete("kcal");
 
     const slots = { m: null, n: null };
     params.getAll("bp").forEach((s) => {
@@ -57,9 +84,11 @@
       msg.textContent = "取り込める項目がありません";
       return false;
     }
+    const hasPFC = ["p", "f", "c"].some((k) => new URLSearchParams(qs).has(k));
     history.replaceState({}, "", location.pathname + "?" + qs);
     loadDateIntoForm(getTodayISO(), true);
     history.replaceState({}, "", location.pathname);
+    if (hasPFC) syncKcal();
     const ok = els.syncStatus.textContent.includes("項目反映");
     msg.textContent = ok
       ? els.syncStatus.textContent.replace("URLから", "取り込みで")
