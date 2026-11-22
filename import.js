@@ -58,6 +58,8 @@
 
   const btn = document.createElement("button");
   btn.type = "button";
+    btn.id = "importHealthBtn";
+
   btn.textContent = "ヘルスケアから取り込む";
   btn.style.cssText =
     "display:block;width:100%;padding:14px;border:0;border-radius:12px;font-size:16px;font-weight:700;background:#38bdf8;color:#0f172a;";
