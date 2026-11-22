@@ -422,3 +422,23 @@ table.log-table th { background: #0f172a; color: var(--muted); }
 }
 #calMonthLabel { --ic: var(--ic-calendar); }
 #saveAndCopyBtn { --ic: var(--ic-clipboard); }
+/* ① 記入例の文字を薄く(もっと薄くしたいときは #334155、濃くしたいときは #64748b) */
+input::placeholder,
+textarea::placeholder {
+  color: #475569;
+  opacity: 1;
+}
+
+/* ④ ログ表の列を左へ(朝夜BP/HRは1文字分、PFCは4文字分) */
+table.log-table th:nth-child(2),
+table.log-table td:nth-child(2),
+table.log-table th:nth-child(3),
+table.log-table td:nth-child(3) {
+  position: relative;
+  left: -1em;
+}
+table.log-table th:nth-child(11),
+table.log-table td:nth-child(11) {
+  position: relative;
+  left: -4em;
+}
