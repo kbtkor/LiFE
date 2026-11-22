@@ -693,6 +693,30 @@ function renderMyList() {
     const actions = document.createElement("div");
     actions.className = "item-actions";
 
+    function moveItem(from, to) {
+      const l = loadMyList();
+      if (to < 0 || to >= l.length) return;
+      const [moved] = l.splice(from, 1);
+      l.splice(to, 0, moved);
+      saveMyList(l);
+    }
+
+    const upBtn = document.createElement("button");
+    upBtn.type = "button";
+    upBtn.className = "edit-btn";
+    upBtn.textContent = "↑";
+    upBtn.disabled = idx === 0;
+    upBtn.style.opacity = idx === 0 ? "0.35" : "1";
+    upBtn.onclick = () => moveItem(idx, idx - 1);
+
+    const downBtn = document.createElement("button");
+    downBtn.type = "button";
+    downBtn.className = "edit-btn";
+    downBtn.textContent = "↓";
+    downBtn.disabled = idx === list.length - 1;
+    downBtn.style.opacity = idx === list.length - 1 ? "0.35" : "1";
+    downBtn.onclick = () => moveItem(idx, idx + 1);
+
     const editBtn = document.createElement("button");
     editBtn.type = "button";
     editBtn.className = "edit-btn";
@@ -717,6 +741,8 @@ function renderMyList() {
       saveMyList(nextList);
     };
 
+    actions.appendChild(upBtn);
+    actions.appendChild(downBtn);
     actions.appendChild(editBtn);
     actions.appendChild(delBtn);
     card.appendChild(actions);
