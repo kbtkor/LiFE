@@ -1,5 +1,5 @@
 const CACHE = 'code-life-v1';
-const FILES = ['./', './index.html', './styles.css', './app.js', './import.js'];
+const FILES = ['./', './index.html', './styles.css', './app.js', './import.js', './swipe.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)));
