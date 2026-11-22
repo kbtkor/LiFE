@@ -31,6 +31,7 @@
   let busy = false;
   let pg = null;
   let mo = null;
+  let tgt = null;
 
   function isSkipTarget(el) {
     return !!(el && el.closest && el.closest("input, textarea, select, .table-wrap"));
@@ -43,16 +44,30 @@
     return Math.abs(s.dx) > W * 0.28 || (Math.abs(s.dx) > 40 && v > 0.45);
   }
 
-  document.addEventListener("touchstart", (e) => {
+  function unbind() {
+    if (!tgt) return;
+    tgt.removeEventListener("touchmove", onMove);
+    tgt.removeEventListener("touchend", onEnd);
+    tgt.removeEventListener("touchcancel", onCancel);
+    tgt = null;
+  }
+
+  function onStart(e) {
+    unbind();
     if (busy || e.touches.length !== 1 || isSkipTarget(e.target)) { st = null; return; }
     const t = e.touches[0];
     st = {
       x: t.clientX, y: t.clientY, time: Date.now(), mode: null, dx: 0,
       zone: pageEl("calendar").classList.contains("active") && inCalZone(e.target)
     };
-  }, { passive: true });
+    // 触れた要素が途中で消えても、指の動きを受け取れるように要素自体に付ける
+    tgt = e.target;
+    tgt.addEventListener("touchmove", onMove, { passive: false });
+    tgt.addEventListener("touchend", onEnd, { passive: true });
+    tgt.addEventListener("touchcancel", onCancel, { passive: true });
+  }
 
-  document.addEventListener("touchmove", (e) => {
+  function onMove(e) {
     if (!st || busy) return;
     const t = e.touches[0];
     const dx = t.clientX - st.x;
@@ -72,17 +87,20 @@
     e.preventDefault();
     st.dx = dx;
     if (st.mode === "month") moveMonth(dx); else movePage(dx);
-  }, { passive: false });
+  }
 
   function endTouch(cancel) {
+    unbind();
     if (!st) return;
     const s = st;
     st = null;
     if (s.mode === "month" && mo) endMonth(s, cancel);
     else if (s.mode === "page" && pg) endPage(s, cancel);
   }
-  document.addEventListener("touchend", () => endTouch(false), { passive: true });
-  document.addEventListener("touchcancel", () => endTouch(true), { passive: true });
+  function onEnd() { endTouch(false); }
+  function onCancel() { endTouch(true); }
+
+  document.addEventListener("touchstart", onStart, { passive: true });
 
   // ---- ページのスライド ----
   function beginPage() {
@@ -155,25 +173,36 @@
     return { y, m };
   }
 
+  // 画面上のカレンダーには触れず、別の場所で前後の月を作る
   function buildNeighbor(dir) {
-    const keepY = calYear;
-    const keepM = calMonth;
     const s = shiftMonth(dir);
+    const keep = { y: calYear, m: calMonth, grid: els.calGrid, label: els.calMonthLabel };
+    const tmp = document.createElement("div");
+    tmp.className = keep.grid.className;
+    els.calGrid = tmp;
+    els.calMonthLabel = document.createElement("span");
     calYear = s.y;
     calMonth = s.m;
-    renderCalendar();
-    const clone = els.calGrid.cloneNode(true);
-    clone.removeAttribute("id");
-    calYear = keepY;
-    calMonth = keepM;
-    renderCalendar();
-    return clone;
+    try {
+      renderCalendar();
+    } finally {
+      calYear = keep.y;
+      calMonth = keep.m;
+      els.calGrid = keep.grid;
+      els.calMonthLabel = keep.label;
+    }
+    return tmp;
   }
 
   function beginMonth() {
+    vp.querySelectorAll(".cal-nb").forEach((n) => n.remove());
+    els.calGrid.style.transition = "none";
+    els.calGrid.style.transform = "";
+    els.calGrid.style.willChange = "transform";
     mo = { W: vp.offsetWidth, prev: buildNeighbor(-1), next: buildNeighbor(1) };
     [mo.prev, mo.next].forEach((c) => {
-      c.style.cssText = "position:absolute;top:0;left:0;width:100%;";
+      c.classList.add("cal-nb");
+      c.style.cssText = "position:absolute;top:0;left:0;width:100%;will-change:transform;";
       vp.appendChild(c);
     });
   }
@@ -206,6 +235,7 @@
     setTimeout(() => {
       grid.style.transition = "none";
       grid.style.transform = "";
+      grid.style.willChange = "";
       prev.remove();
       next.remove();
       if (commit) {
