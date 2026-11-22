@@ -858,20 +858,28 @@ function renderCalendar() {
 }
 
 function drawLineChart(canvas, labels, seriesList) {
-  const ctx = canvas.getContext("2d");
-  const w = canvas.width;
-  const h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
+  const FONT = "-apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif";
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const w = canvas.clientWidth || Math.max(240, Math.min(600, window.innerWidth - 28) - 28);
+  const h = canvas.clientHeight || 190;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
 
-  const pad = { top: 24, right: 16, bottom: 26, left: 38 };
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ctx.textBaseline = "alphabetic";
+
+  const pad = { top: 26, right: 16, bottom: 26, left: 42 };
   const plotW = w - pad.left - pad.right;
   const plotH = h - pad.top - pad.bottom;
 
   const allVals = seriesList.flatMap((s) => s.data.filter((v) => v !== null));
   if (!allVals.length) {
     ctx.fillStyle = "#94a3b8";
-    ctx.font = "14px sans-serif";
-    ctx.fillText("データがありません", w / 2 - 60, h / 2);
+    ctx.font = `14px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText("データがありません", w / 2, h / 2);
     return;
   }
 
@@ -882,36 +890,50 @@ function drawLineChart(canvas, labels, seriesList) {
   minV -= margin;
   maxV += margin;
 
+  // 横線と縦軸の数値
   ctx.strokeStyle = "#334155";
   ctx.lineWidth = 1;
+  ctx.font = `12px ${FONT}`;
+  ctx.fillStyle = "#94a3b8";
+  ctx.textAlign = "right";
   for (let i = 0; i <= 4; i++) {
     const y = pad.top + (plotH * i) / 4;
+    const yy = Math.round(y) + 0.5;
     ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(w - pad.right, y);
+    ctx.moveTo(pad.left, yy);
+    ctx.lineTo(w - pad.right, yy);
     ctx.stroke();
 
     const valLabel = (maxV - ((maxV - minV) * i) / 4).toFixed(1);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "11px sans-serif";
-    ctx.fillText(valLabel, 4, y + 4);
+    ctx.fillText(valLabel, pad.left - 6, y + 4);
   }
 
+  // 横軸の日付
+  ctx.textAlign = "center";
+  ctx.font = `11px ${FONT}`;
   labels.forEach((lbl, idx) => {
     if (idx % 2 !== 0 && labels.length > 7) return;
     const x = pad.left + (plotW * idx) / Math.max(1, labels.length - 1);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "10px sans-serif";
-    ctx.fillText(lbl, x - 12, h - 8);
+    ctx.fillText(lbl, x, h - 8);
   });
 
-  seriesList.forEach((s, sIdx) => {
+  // 凡例
+  ctx.textAlign = "left";
+  ctx.font = `12px ${FONT}`;
+  let lx = pad.left;
+  seriesList.forEach((s) => {
+    const text = `● ${s.label}`;
     ctx.fillStyle = s.color;
-    ctx.font = "11px sans-serif";
-    ctx.fillText(`● ${s.label}`, pad.left + sIdx * 115, 14);
+    ctx.fillText(text, lx, 14);
+    lx += ctx.measureText(text).width + 14;
+  });
 
+  // 線と点
+  seriesList.forEach((s) => {
     ctx.strokeStyle = s.color;
+    ctx.fillStyle = s.color;
     ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
     ctx.beginPath();
     let started = false;
     s.data.forEach((v, idx) => {
