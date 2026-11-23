@@ -98,11 +98,14 @@
   };
 
   // ---- ③ 体重は小数第一位まで(切り捨て) ----
-  function trunc1(v) {
+    function trunc1(v) {
     const s = String(v == null ? "" : v).trim();
-    const m = /^(-?\d+)\.(\d+)$/.exec(s);
-    return m ? m[1] + "." + m[2].slice(0, 1) : s;
+    if (!/^-?\d+\.\d+$/.test(s)) return s;
+    // まず小数6桁に丸めて(65.59999999999 → 65.600000)、小数第一位で切り捨てる
+    const [i, d] = Number(s).toFixed(6).split(".");
+    return i + "." + d.slice(0, 1);
   }
+
   els.weight.step = "0.1";
   els.weight.addEventListener("change", () => {
     const t = trunc1(els.weight.value);
