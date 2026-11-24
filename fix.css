@@ -1,0 +1,21 @@
+/* ① 入力後の数値は白(青・赤の色分けはそのまま) */
+input.val-gray {
+  color: #f8fafc !important;
+}
+
+/* ⑤ ログ表: 文字を左へ寄せる方法を「余白」に変更(重なり防止) */
+table.log-table th:nth-child(2),
+table.log-table td:nth-child(2),
+table.log-table th:nth-child(3),
+table.log-table td:nth-child(3) {
+  position: static;
+  left: auto;
+  padding-right: calc(8px + 1em);
+}
+
+table.log-table th:nth-child(11),
+table.log-table td:nth-child(11) {
+  position: static;
+  left: auto;
+  padding-right: calc(8px + 4em);
+}
