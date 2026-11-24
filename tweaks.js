@@ -114,6 +114,13 @@
       els.weight.dispatchEvent(new Event("input"));
     }
   });
+  els.bodyTemp.addEventListener("change", () => {
+    const t = trunc1(els.bodyTemp.value);
+    if (t !== els.bodyTemp.value) {
+      els.bodyTemp.value = t;
+      els.bodyTemp.dispatchEvent(new Event("input"));
+    }
+  });
 
   let urlCount = 0;
   const _applyUrl = applyUrlParams;
