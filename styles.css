@@ -429,15 +429,6 @@ textarea::placeholder {
   opacity: 1;
 }
 
-/* ④ ログ表の見出しの文字を左へ(朝夜BP/HRは1文字分、PFCは4文字分)。数字は動かさない */
-table.log-table th:nth-child(2),
-table.log-table th:nth-child(3) {
-  padding-right: calc(8px + 1em);
-}
-table.log-table th:nth-child(11) {
-  padding-right: calc(8px + 4em);
-}
-
 /* Body・Intakeの見出し:記録なしを右、青赤の説明を2行目へ */
 .card:has(#waist) > .section-title > .check-pill,
 .card:has(#pGrams) > .section-title > .check-pill {
