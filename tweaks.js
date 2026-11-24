@@ -158,18 +158,4 @@
   const first = loadAllLogs()[currentDateStr] || {};
   restoreChecks(first);
   if (!first.customText) updatePreviewText();
-    // ---- ログ表の見出しの文字を左へ(見出しの文字から探して設定) ----
-  const HEADER_SHIFT = { "朝BP/HR": 1, "夜BP/HR": 1, "PFC": 4, "P/F/C": 4 };
-  function shiftLogHeaders() {
-    els.fullLogTable.querySelectorAll("th").forEach((th) => {
-      const n = HEADER_SHIFT[th.textContent.trim()];
-      if (n) th.style.paddingRight = "calc(8px + " + n + "em)";
-    });
-  }
-  const _renderData = renderDataPage;
-  renderDataPage = function () {
-    _renderData();
-    shiftLogHeaders();
-  };
-  shiftLogHeaders();
 })();
