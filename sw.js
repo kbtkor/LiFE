@@ -1,8 +1,12 @@
-const CACHE = 'code-life-v1';
+const CACHE = 'code-life-v2';
 const FILES = ['./', './index.html', './styles.css', './app.js', './import.js', './swipe.js', './tweaks.js'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)));
+  e.waitUntil(
+    caches.open(CACHE).then((c) =>
+      Promise.all(FILES.map((f) => c.add(new Request(f, { cache: 'reload' }))))
+    )
+  );
   self.skipWaiting();
 });
 
@@ -18,7 +22,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-        fetch(e.request, { cache: "no-cache" })
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy));
