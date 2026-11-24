@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Code_LiFE" />
   <link rel="apple-touch-icon" href="IMG_8374.png" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="fix.css" />
   <title>Code_LiFE</title>
 </head>
 <body>
@@ -333,6 +334,25 @@
             <input type="text" id="myFullName" placeholder="例: ボディブレード" />
           </div>
         </div>
+        <div class="grid-2" style="margin-bottom:8px;">
+          <div>
+            <label for="myCategory">運動区分</label>
+            <select id="myCategory">
+              <option value="">-- 未選択 --</option>
+              <option value="筋トレ">筋トレ</option>
+              <option value="運動">運動</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div>
+            <label for="myTimeType">Time区分</label>
+            <select id="myTimeType">
+              <option value="">-- 未選択 --</option>
+              <option value="回数">回数</option>
+              <option value="時間">時間</option>
+            </select>
+          </div>
+        </div>
         <div style="margin-bottom:8px;">
           <label for="myDetail">内容</label>
           <input type="text" id="myDetail" placeholder="例: ボディブレード30秒+スクワット30秒×5セット" />
@@ -384,6 +404,11 @@
       <div class="card">
         <div class="section-title"><span>Body(体組成) - 過去14日グラフ（体重・体脂肪率）</span></div>
         <canvas id="bodyChart" class="chart" width="560" height="200"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span>Active(活動) - 過去14日グラフ（アクティブ消費・カーディオ負荷）</span></div>
+        <canvas id="activeChart" class="chart" width="560" height="200"></canvas>
       </div>
 
       <div class="card">
