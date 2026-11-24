@@ -100,6 +100,8 @@ const els = {
   myListFormTitle: document.getElementById("myListFormTitle"),
   myShortName: document.getElementById("myShortName"),
   myFullName: document.getElementById("myFullName"),
+  myCategory: document.getElementById("myCategory"),
+  myTimeType: document.getElementById("myTimeType"),
   myDetail: document.getElementById("myDetail"),
   addMyListBtn: document.getElementById("addMyListBtn"),
   cancelMyListEditBtn: document.getElementById("cancelMyListEditBtn"),
@@ -118,6 +120,7 @@ const els = {
   // Data
   vitalsChart: document.getElementById("vitalsChart"),
   bodyChart: document.getElementById("bodyChart"),
+  activeChart: document.getElementById("activeChart"),
   toggleLogTableBtn: document.getElementById("toggleLogTableBtn"),
   fullLogSection: document.getElementById("fullLogSection"),
   fullLogTable: document.getElementById("fullLogTable")
@@ -133,6 +136,16 @@ function shiftDate(isoStr, days) {
   const [y, m, d] = isoStr.split("-").map(Number);
   const dt = new Date(y, m - 1, d + days);
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
+// 小数第一位まで(それ以下は切り捨て)。文字列で処理するので誤差が出ない
+function trunc1(raw) {
+  if (raw === null || raw === undefined) return "";
+  const s = String(raw).trim();
+  const m = s.match(/^(-?\d+)(?:\.(\d+))?$/);
+  if (!m) return s;
+  const d = m[2] ? m[2][0] : "0";
+  return d === "0" ? m[1] : `${m[1]}.${d}`;
 }
 
 function loadAllLogs() {
@@ -385,7 +398,7 @@ function applyUrlParams() {
       if (!params.has(k)) continue;
       const numStr = extractNumericValue(params.get(k));
       if (numStr !== "") {
-        input.value = numStr;
+        input.value = input === els.kcal ? trunc1(numStr) : numStr;
         count++;
         break;
       }
@@ -496,7 +509,7 @@ function collectCurrentDayState() {
       p: els.pGrams.value.trim(),
       f: els.fGrams.value.trim(),
       c: els.cGrams.value.trim(),
-      kcal: els.kcal.value.trim(),
+      kcal: trunc1(els.kcal.value.trim()),
       supplements: {
         morning: {
           hmb: els.mSuppHmb.checked,
@@ -617,7 +630,7 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
   els.pGrams.value = inc.p ?? "";
   els.fGrams.value = inc.f ?? "";
   els.cGrams.value = inc.c ?? "";
-  els.kcal.value = inc.kcal ?? "";
+  els.kcal.value = trunc1(inc.kcal ?? "");
 
   els.mSuppHmb.checked = Boolean(supps.morning?.hmb);
   els.mSuppAmino.checked = Boolean(supps.morning?.amino);
@@ -667,6 +680,8 @@ function resetMyListForm() {
   els.cancelMyListEditBtn.classList.add("hidden");
   els.myShortName.value = "";
   els.myFullName.value = "";
+  els.myCategory.value = "";
+  els.myTimeType.value = "";
   els.myDetail.value = "";
 }
 
@@ -681,11 +696,17 @@ function renderMyList() {
     opt.textContent = `${item.shortName}（${item.fullName}）`;
     els.myListSelect.appendChild(opt);
 
+    const kind = [item.category, item.timeType].filter(Boolean).join(" / ");
+    const kindHtml = kind
+      ? `<span style="color:var(--muted);">${kind}</span>`
+      : `<span style="color:var(--danger);">区分未設定（編集で登録）</span>`;
+
     const card = document.createElement("div");
     card.className = "activity-item";
     card.innerHTML = `
       <div>
         <strong>${item.shortName}</strong>（${item.fullName}）<br/>
+        ${kindHtml}<br/>
         <span style="color:var(--muted);">${item.detail || "-"}</span>
       </div>
     `;
@@ -728,7 +749,10 @@ function renderMyList() {
       els.cancelMyListEditBtn.classList.remove("hidden");
       els.myShortName.value = item.shortName || "";
       els.myFullName.value = item.fullName || "";
+      els.myCategory.value = item.category || "";
+      els.myTimeType.value = item.timeType || "";
       els.myDetail.value = item.detail || "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const delBtn = document.createElement("button");
@@ -857,6 +881,7 @@ function renderCalendar() {
   }
 }
 
+// seriesList の各項目: { label, color, data, axis?: "right", int?: true }
 function drawLineChart(canvas, labels, seriesList) {
   const FONT = "-apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif";
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
@@ -870,12 +895,28 @@ function drawLineChart(canvas, labels, seriesList) {
   ctx.clearRect(0, 0, w, h);
   ctx.textBaseline = "alphabetic";
 
-  const pad = { top: 26, right: 16, bottom: 26, left: 42 };
+  const hasRight = seriesList.some((s) => s.axis === "right");
+  const pad = { top: 26, right: hasRight ? 42 : 16, bottom: 26, left: 42 };
   const plotW = w - pad.left - pad.right;
   const plotH = h - pad.top - pad.bottom;
 
-  const allVals = seriesList.flatMap((s) => s.data.filter((v) => v !== null));
-  if (!allVals.length) {
+  const leftSeries = seriesList.filter((s) => s.axis !== "right");
+  const rightSeries = seriesList.filter((s) => s.axis === "right");
+
+  function calcRange(list) {
+    const vals = list.flatMap((s) => s.data.filter((v) => v !== null));
+    if (!vals.length) return null;
+    let min = Math.min(...vals);
+    let max = Math.max(...vals);
+    if (min === max) { min -= 1; max += 1; }
+    const margin = (max - min) * 0.1;
+    return { min: min - margin, max: max + margin };
+  }
+
+  const lr = calcRange(leftSeries);
+  const rr = calcRange(rightSeries);
+
+  if (!lr && !rr) {
     ctx.fillStyle = "#94a3b8";
     ctx.font = `14px ${FONT}`;
     ctx.textAlign = "center";
@@ -883,19 +924,13 @@ function drawLineChart(canvas, labels, seriesList) {
     return;
   }
 
-  let minV = Math.min(...allVals);
-  let maxV = Math.max(...allVals);
-  if (minV === maxV) { minV -= 1; maxV += 1; }
-  const margin = (maxV - minV) * 0.1;
-  minV -= margin;
-  maxV += margin;
+  const leftDecimals = leftSeries.some((s) => s.int) ? 0 : 1;
+  const rightDecimals = rightSeries.some((s) => s.int) ? 0 : 1;
 
   // 横線と縦軸の数値
   ctx.strokeStyle = "#334155";
   ctx.lineWidth = 1;
   ctx.font = `12px ${FONT}`;
-  ctx.fillStyle = "#94a3b8";
-  ctx.textAlign = "right";
   for (let i = 0; i <= 4; i++) {
     const y = pad.top + (plotH * i) / 4;
     const yy = Math.round(y) + 0.5;
@@ -904,11 +939,22 @@ function drawLineChart(canvas, labels, seriesList) {
     ctx.lineTo(w - pad.right, yy);
     ctx.stroke();
 
-    const valLabel = (maxV - ((maxV - minV) * i) / 4).toFixed(1);
-    ctx.fillText(valLabel, pad.left - 6, y + 4);
+    if (lr) {
+      ctx.fillStyle = "#94a3b8";
+      ctx.textAlign = "right";
+      const lv = (lr.max - ((lr.max - lr.min) * i) / 4).toFixed(leftDecimals);
+      ctx.fillText(lv, pad.left - 6, y + 4);
+    }
+    if (rr) {
+      ctx.fillStyle = rightSeries[0].color;
+      ctx.textAlign = "left";
+      const rv = (rr.max - ((rr.max - rr.min) * i) / 4).toFixed(rightDecimals);
+      ctx.fillText(rv, w - pad.right + 6, y + 4);
+    }
   }
 
   // 横軸の日付
+  ctx.fillStyle = "#94a3b8";
   ctx.textAlign = "center";
   ctx.font = `11px ${FONT}`;
   labels.forEach((lbl, idx) => {
@@ -930,6 +976,10 @@ function drawLineChart(canvas, labels, seriesList) {
 
   // 線と点
   seriesList.forEach((s) => {
+    const range = s.axis === "right" ? rr : lr;
+    if (!range) return;
+    const yOf = (v) => pad.top + plotH - ((v - range.min) / (range.max - range.min)) * plotH;
+
     ctx.strokeStyle = s.color;
     ctx.fillStyle = s.color;
     ctx.lineWidth = 2;
@@ -939,7 +989,7 @@ function drawLineChart(canvas, labels, seriesList) {
     s.data.forEach((v, idx) => {
       if (v === null) return;
       const x = pad.left + (plotW * idx) / Math.max(1, labels.length - 1);
-      const y = pad.top + plotH - ((v - minV) / (maxV - minV)) * plotH;
+      const y = yOf(v);
       if (!started) {
         ctx.moveTo(x, y);
         started = true;
@@ -952,7 +1002,7 @@ function drawLineChart(canvas, labels, seriesList) {
     s.data.forEach((v, idx) => {
       if (v === null) return;
       const x = pad.left + (plotW * idx) / Math.max(1, labels.length - 1);
-      const y = pad.top + plotH - ((v - minV) / (maxV - minV)) * plotH;
+      const y = yOf(v);
       ctx.beginPath();
       ctx.arc(x, y, 3, 0, Math.PI * 2);
       ctx.fill();
@@ -977,6 +1027,11 @@ function renderDataPage() {
   drawLineChart(els.bodyChart, labels14, [
     { label: "体重(kg)", color: "#38bdf8", data: dates14.map((d) => toNum(logs[d]?.body?.weight)) },
     { label: "体脂肪率(%)", color: "#facc15", data: dates14.map((d) => toNum(logs[d]?.body?.bfp)) }
+  ]);
+
+  drawLineChart(els.activeChart, labels14, [
+    { label: "アクティブ消費(kcal)", color: "#fb923c", int: true, data: dates14.map((d) => toNum(logs[d]?.active?.activeKcal)) },
+    { label: "カーディオ負荷", color: "#a78bfa", int: true, axis: "right", data: dates14.map((d) => toNum(logs[d]?.active?.cardioLoad)) }
   ]);
 
   const allDates = Object.keys(logs).sort((a, b) => b.localeCompare(a));
@@ -1028,7 +1083,7 @@ function renderDataPage() {
           <td>${b.bmr || "-"}</td>
           <td>${b.bodyTemp || "-"}</td>
           <td>${inc.p || "-"}/${inc.f || "-"}/${inc.c || "-"}</td>
-          <td>${inc.kcal || "-"}</td>
+          <td>${trunc1(inc.kcal) || "-"}</td>
         </tr>
       `;
     });
@@ -1100,6 +1155,10 @@ els.toggleIntakeTargetBtn.addEventListener("click", () => {
   els.activeKcal, els.cardioLoad, els.mSymptom, els.nSymptom
 ].forEach((el) => {
   el.addEventListener("input", () => {
+    // カロリーは小数第一位まで(それ以下は切り捨て)
+    if (el === els.kcal && /\.\d{2,}$/.test(el.value)) {
+      el.value = trunc1(el.value);
+    }
     refreshTargetDisplayAndColors();
     updateBlankWarnings();
     if (!isTextManuallyEdited) updatePreviewText();
@@ -1122,6 +1181,8 @@ els.myListSelect.addEventListener("change", () => {
   if (item) {
     els.actName.value = item.shortName;
     els.actNote.value = item.detail || "";
+    if (item.category) els.actCategory.value = item.category;
+    if (item.timeType) els.actTimeType.value = item.timeType;
   }
 });
 
@@ -1154,6 +1215,8 @@ els.addMyListBtn.addEventListener("click", () => {
   const shortName = els.myShortName.value.trim();
   const fullName = els.myFullName.value.trim();
   const detail = els.myDetail.value.trim();
+  const category = els.myCategory.value;
+  const timeType = els.myTimeType.value;
   if (!shortName && !fullName) return;
 
   const list = loadMyList();
@@ -1164,6 +1227,8 @@ els.addMyListBtn.addEventListener("click", () => {
         ...list[idx],
         shortName: shortName || fullName,
         fullName: fullName || shortName,
+        category,
+        timeType,
         detail
       };
     }
@@ -1172,6 +1237,8 @@ els.addMyListBtn.addEventListener("click", () => {
       id: `my_${Date.now()}`,
       shortName: shortName || fullName,
       fullName: fullName || shortName,
+      category,
+      timeType,
       detail
     });
   }
