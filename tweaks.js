@@ -124,14 +124,17 @@
 
   let urlCount = 0;
   const _applyUrl = applyUrlParams;
-  applyUrlParams = function () {
+    applyUrlParams = function () {
     const q = new URLSearchParams(window.location.search);
     const hadWeight = ["weight", "wt"].some((k) => q.has(k));
+    const hadTemp = ["temp", "body_temp"].some((k) => q.has(k));
     const n = _applyUrl();
     if (hadWeight) els.weight.value = trunc1(els.weight.value);
+    if (hadTemp) els.bodyTemp.value = trunc1(els.bodyTemp.value);
     urlCount = n;
     return n;
   };
+
 
   // ---- 日付を開いたときに「記録なし」を復元 ----
   function restoreChecks(day) {
