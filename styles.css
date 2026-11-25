@@ -275,7 +275,6 @@ textarea.output {
 .cal-cell.empty { background: transparent; border-color: transparent; cursor: default; }
 .cal-cell.sun-holiday { color: #f87171; font-weight: 700; }
 .cal-cell.sat { color: #60a5fa; font-weight: 700; }
-.cal-cell.has-log { border-color: var(--accent-2); }
 .cal-cell.selected { background: rgba(56, 189, 248, 0.25); border-color: var(--accent); font-weight: 700; }
 
 .cal-sun-holiday { color: #f87171; font-weight: 700; }
