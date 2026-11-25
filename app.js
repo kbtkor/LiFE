@@ -158,7 +158,7 @@ function loadAllLogs() {
 
 function saveAllLogs(logs) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
-  els.backupInfo.textContent = `保存済み日数: ${Object.keys(logs).length}日分`;
+  els.backupInfo.textContent = `保存日数: ${Object.keys(logs).length}日分`;
 }
 
 function loadTargetHistory() {
@@ -881,7 +881,7 @@ function renderCalendar() {
   }
 }
 
-// seriesList の各項目: { label, color, data, axis?: "right", int?: true }
+// seriesList の各項目: { label, color, data, axis?: "right", int?: true, dash?: [線, 間], row?: 凡例の段 }
 function drawLineChart(canvas, labels, seriesList) {
   const FONT = "-apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif";
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
@@ -895,8 +895,26 @@ function drawLineChart(canvas, labels, seriesList) {
   ctx.clearRect(0, 0, w, h);
   ctx.textBaseline = "alphabetic";
 
+  // 凡例の配置(row を指定した系列は、その段に並べる)
+  ctx.font = `12px ${FONT}`;
+  const legendGap = seriesList.some((s) => s.row !== undefined) ? 10 : 14;
+  const legend = [];
+  let legendX = 42;
+  let legendRow = 0;
+  seriesList.forEach((s) => {
+    const r = s.row || 0;
+    if (r !== legendRow) {
+      legendRow = r;
+      legendX = 42;
+    }
+    const text = `● ${s.label}`;
+    legend.push({ text, x: legendX, row: r, color: s.color });
+    legendX += ctx.measureText(text).width + legendGap;
+  });
+  const legendRows = Math.max(0, ...legend.map((it) => it.row)) + 1;
+
   const hasRight = seriesList.some((s) => s.axis === "right");
-  const pad = { top: 26, right: hasRight ? 42 : 16, bottom: 26, left: 42 };
+  const pad = { top: 26 + (legendRows - 1) * 16, right: hasRight ? 42 : 16, bottom: 26, left: 42 };
   const plotW = w - pad.left - pad.right;
   const plotH = h - pad.top - pad.bottom;
 
@@ -966,12 +984,9 @@ function drawLineChart(canvas, labels, seriesList) {
   // 凡例
   ctx.textAlign = "left";
   ctx.font = `12px ${FONT}`;
-  let lx = pad.left;
-  seriesList.forEach((s) => {
-    const text = `● ${s.label}`;
-    ctx.fillStyle = s.color;
-    ctx.fillText(text, lx, 14);
-    lx += ctx.measureText(text).width + 14;
+  legend.forEach((it) => {
+    ctx.fillStyle = it.color;
+    ctx.fillText(it.text, it.x, 14 + it.row * 16);
   });
 
   // 線と点
@@ -984,6 +999,7 @@ function drawLineChart(canvas, labels, seriesList) {
     ctx.fillStyle = s.color;
     ctx.lineWidth = 2;
     ctx.lineJoin = "round";
+    ctx.setLineDash(s.dash || []);
     ctx.beginPath();
     let started = false;
     s.data.forEach((v, idx) => {
@@ -998,6 +1014,7 @@ function drawLineChart(canvas, labels, seriesList) {
       }
     });
     ctx.stroke();
+    ctx.setLineDash([]);
 
     s.data.forEach((v, idx) => {
       if (v === null) return;
@@ -1019,9 +1036,12 @@ function renderDataPage() {
   const labels14 = dates14.map((d) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`);
 
   drawLineChart(els.vitalsChart, labels14, [
-    { label: "朝 血圧(上)", color: "#38bdf8", data: dates14.map((d) => toNum(logs[d]?.morning?.bpSys)) },
-    { label: "夜 血圧(上)", color: "#f87171", data: dates14.map((d) => toNum(logs[d]?.night?.bpSys)) },
-    { label: "朝 脈拍", color: "#22c55e", data: dates14.map((d) => toNum(logs[d]?.morning?.hr)) }
+    { label: "朝 血圧(上)", color: "#3b82f6", row: 0, data: dates14.map((d) => toNum(logs[d]?.morning?.bpSys)) },
+    { label: "朝 血圧(下)", color: "#93c5fd", row: 0, data: dates14.map((d) => toNum(logs[d]?.morning?.bpDia)) },
+    { label: "朝 脈拍", color: "#60a5fa", dash: [5, 4], row: 0, data: dates14.map((d) => toNum(logs[d]?.morning?.hr)) },
+    { label: "夜 血圧(上)", color: "#ef4444", row: 1, data: dates14.map((d) => toNum(logs[d]?.night?.bpSys)) },
+    { label: "夜 血圧(下)", color: "#fca5a5", row: 1, data: dates14.map((d) => toNum(logs[d]?.night?.bpDia)) },
+    { label: "夜 脈拍", color: "#f87171", dash: [5, 4], row: 1, data: dates14.map((d) => toNum(logs[d]?.night?.hr)) }
   ]);
 
   drawLineChart(els.bodyChart, labels14, [
@@ -1284,7 +1304,8 @@ els.exportJsonBtn.addEventListener("click", () => {
   const payload = {
     logs,
     targetHistory: loadTargetHistory(),
-    myList: loadMyList()
+    myList: loadMyList(),
+    memos: (window.loadMemos ? window.loadMemos() : [])
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
