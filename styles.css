@@ -393,6 +393,7 @@ table.log-table th { background: #0f172a; color: var(--muted); }
   -webkit-mask: var(--ic) center / contain no-repeat;
   mask: var(--ic) center / contain no-repeat;
 }
+
 .nav-btn[data-page="home"] { --ic: var(--ic-home); }
 .nav-btn[data-page="mylist"] { --ic: var(--ic-star); }
 .nav-btn[data-page="calendar"] { --ic: var(--ic-calendar); }
