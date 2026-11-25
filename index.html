@@ -313,7 +313,7 @@
           保存してAI検索用テキストをコピー
         </button>
         <div class="row" style="justify-content:space-between; margin-bottom:4px;">
-          <label for="formattedOutput" style="margin:0;">Text（手入力追記・編集可能）</label>
+          <label for="formattedOutput" style="margin:0;">Text（追記・編集可能）</label>
           <button type="button" id="regenerateTextBtn" class="mini-btn">入力値から再生成</button>
         </div>
         <textarea id="formattedOutput" class="output"></textarea>
@@ -379,8 +379,6 @@
         </div>
         <div class="cal-grid" id="calGrid"></div>
         <div class="muted-note">
-          ※<span class="cal-sun-holiday">日祝は赤字</span>・<span class="cal-sat">土は青字</span>。緑枠・点付きは記録あり。日付をタップするとその日の記録を開きます。
-        </div>
       </div>
 
       <div class="card">
@@ -390,9 +388,8 @@
           <button type="button" id="importJsonBtn">JSONインポート</button>
         </div>
         <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;" />
-        <div id="backupInfo" class="muted-note">保存済み日数: 0日分</div>
+        <div id="backupInfo" class="muted-note">保存日数: 0日分</div>
       </div>
-    </div>
 
     <!-- ==================== 4. データページ ==================== -->
     <div id="page-data" class="page">
@@ -438,6 +435,7 @@
   <script src="swipe.js" defer></script>
   <script src="tweaks.js" defer></script>
   <script src="logfix.js" defer></script>
+  <script src="memo.js" defer></script>
 
 </body>
 </html>
