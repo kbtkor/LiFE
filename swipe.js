@@ -1,5 +1,5 @@
 (function () {
-  const PAGES = ["home", "mylist", "calendar", "data"];
+  const PAGES = ["home", "mylist", "calendar", "data", "memo"];
   const T = 0.22;
   const pageEl = (n) => document.getElementById("page-" + n);
   const container = document.querySelector(".container");
