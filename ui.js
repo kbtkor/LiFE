@@ -53,6 +53,7 @@
     sp.textContent = head;
     const s = document.createElement("span");
     s.className = "title-sub";
+    s.style.cssText = "display:block;padding-left:calc(1.15em + 6px);";
     s.textContent = sub;
     sp.appendChild(s);
   });
