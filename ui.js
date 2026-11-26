@@ -20,6 +20,7 @@
 .card:has(#vitalsChart) > .section-title > span::before,
 .card:has(#bodyChart) > .section-title > span::before,
 .card:has(#activeChart) > .section-title > span::before{
+ .title-sub{display:block;padding-left:calc(1.15em + 6px);}
   content:"";display:inline-block;width:1.15em;height:1.15em;margin-right:6px;vertical-align:-.2em;
   background-color:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;
 }
@@ -40,6 +41,21 @@
     sync.parentNode.insertBefore(box, sync);
     box.append(label, sync);
   }
+  // ---- データページの見出し:「過去14日グラフ」のあとで改行 ----
+  document.querySelectorAll("#page-data .section-title > span").forEach((sp) => {
+    if (sp.querySelector(".title-sub")) return;
+    const t = sp.textContent;
+    const i = t.indexOf("グラフ");
+    if (i < 0) return;
+    const head = t.slice(0, i + 3);
+    const sub = t.slice(i + 3).trim();
+    if (!sub) return;
+    sp.textContent = head;
+    const s = document.createElement("span");
+    s.className = "title-sub";
+    s.textContent = sub;
+    sp.appendChild(s);
+  });
 
   // ---- グラフ:右軸の系列(カーディオ負荷)を棒グラフにする ----
   const FONT = "-apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif";
