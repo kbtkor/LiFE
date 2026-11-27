@@ -231,4 +231,88 @@
       });
     });
   };
+    // ===== ① ヘッダー・フッターの位置 / ③④ 用のスタイル =====
+  const st2 = document.createElement("style");
+  st2.textContent = `
+.header-bar{padding-top:calc(12px + env(safe-area-inset-top, 0px));}
+.bottom-nav{padding-bottom:calc(env(safe-area-inset-bottom, 0px) * .5);}
+body{padding-bottom:80px;min-height:calc(100vh + 2px);}
+.rec-hide{display:none !important;}
+.my-name{background:none;border:none;color:var(--accent);font-weight:700;font-size:.9rem;padding:2px 0;text-align:left;word-break:break-all;}
+.my-detail{margin-top:4px;font-size:.84rem;word-break:break-all;}
+`;
+  document.head.appendChild(st2);
+
+  // ===== ③ Body・Intake・Activeの「記録なし」で、タイトルとチェック以外を隠す =====
+  function bindRecHide(id) {
+    const chk = document.getElementById(id);
+    if (!chk) return null;
+    const card = chk.closest(".card");
+    return () => {
+      [...card.children].forEach((c) => {
+        if (c.classList.contains("section-title")) return;
+        c.classList.toggle("rec-hide", chk.checked);
+      });
+      card.querySelectorAll(".section-title .badge-note").forEach((n) => {
+        n.classList.toggle("rec-hide", chk.checked);
+      });
+    };
+  }
+  const hideFns = ["bNoRecord", "iNoRecord", "aNoRecord"].map(bindRecHide).filter(Boolean);
+  const applyRecHide = () => hideFns.forEach((f) => f());
+  const _ubw = updateBlankWarnings;
+  updateBlankWarnings = function () {
+    _ubw();
+    applyRecHide();
+  };
+  applyRecHide();
+
+  // ===== ④ 登録済み活動内容リスト:略称のみ表示、タップで詳細 =====
+  function compactMyList() {
+    const list = loadMyList();
+    [...els.myListItems.children].forEach((card, i) => {
+      const item = list[i];
+      const info = card.firstElementChild;
+      if (!item || !info) return;
+      info.innerHTML = "";
+      info.style.flex = "1";
+      info.style.minWidth = "0";
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "my-name";
+      btn.textContent = item.shortName || item.fullName || "(無題)";
+
+      const det = document.createElement("div");
+      det.className = "my-detail rec-hide";
+
+      const l1 = document.createElement("div");
+      l1.textContent = item.fullName || "";
+      l1.style.color = "var(--text)";
+
+      const kind = [item.category, item.timeType].filter(Boolean).join(" / ");
+      const l2 = document.createElement("div");
+      if (kind) {
+        l2.textContent = kind;
+        l2.style.color = "var(--muted)";
+      } else {
+        l2.textContent = "区分未設定(編集で登録)";
+        l2.style.color = "var(--danger)";
+      }
+
+      const l3 = document.createElement("div");
+      l3.textContent = item.detail || "-";
+      l3.style.color = "var(--muted)";
+
+      det.append(l1, l2, l3);
+      btn.addEventListener("click", () => det.classList.toggle("rec-hide"));
+      info.append(btn, det);
+    });
+  }
+  const _renderMy = renderMyList;
+  renderMyList = function () {
+    _renderMy();
+    compactMyList();
+  };
+  compactMyList();
 })();
