@@ -234,7 +234,7 @@
     // ===== ① ヘッダー・フッターの位置 / ③④ 用のスタイル =====
   const st2 = document.createElement("style");
   st2.textContent = `
-.header-bar{padding-top:calc(12px + env(safe-area-inset-top, 0px));}
+.header-bar{padding-top:calc(28px + env(safe-area-inset-top, 0px));}
 .bottom-nav{padding-bottom:calc(env(safe-area-inset-bottom, 0px) * .5);}
 body{padding-bottom:80px;min-height:calc(100vh + 2px);}
 .rec-hide{display:none !important;}
