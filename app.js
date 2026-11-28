@@ -485,7 +485,7 @@ function collectCurrentDayState() {
       bpSys: els.mBpSys.value.trim(),
       bpDia: els.mBpDia.value.trim(),
       hr: els.mHr.value.trim(),
-      symptom: els.mSymptom.value.trim() || "なし",
+      symptom: els.mSymptom.value.trim() || "自覚症状なし",
       ihb: els.mIhb.checked
     },
     night: {
@@ -493,7 +493,7 @@ function collectCurrentDayState() {
       bpSys: els.nBpSys.value.trim(),
       bpDia: els.nBpDia.value.trim(),
       hr: els.nHr.value.trim(),
-      symptom: els.nSymptom.value.trim() || "なし",
+      symptom: els.nSymptom.value.trim() || "自覚症状なし",
       ihb: els.nIhb.checked
     },
     body: {
@@ -609,14 +609,14 @@ function loadDateIntoForm(dateStr, applyUrl = false) {
   els.mBpSys.value = m.bpSys ?? "";
   els.mBpDia.value = m.bpDia ?? "";
   els.mHr.value = m.hr ?? "";
-  els.mSymptom.value = m.symptom ?? "なし";
+  els.mSymptom.value = m.symptom ?? "自覚症状なし";
   els.mIhb.checked = Boolean(m.ihb);
 
   els.nNoRecord.checked = Boolean(n.noRecord);
   els.nBpSys.value = n.bpSys ?? "";
   els.nBpDia.value = n.bpDia ?? "";
   els.nHr.value = n.hr ?? "";
-  els.nSymptom.value = n.symptom ?? "なし";
+  els.nSymptom.value = n.symptom ?? "自覚症状なし";
   els.nIhb.checked = Boolean(n.ihb);
 
   els.waist.value = b.waist ?? "";
