@@ -42,7 +42,7 @@
         <div class="section-title"><span class="mi mi-bookmark">メモの登録</span></div>
         <div style="margin-bottom:8px;">
           <label for="memoName">メモ名</label>
-          <input type="text" id="memoName" placeholder="例: 買い物リスト" />
+          <input type="text" id="memoName" placeholder="例: 健康とBigMac" />
         </div>
         <div style="margin-bottom:8px;">
           <label for="memoBody">内容</label>
