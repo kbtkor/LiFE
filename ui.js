@@ -67,7 +67,11 @@
         if (s.axis === "right") s.bar = true;
       });
     }
-
+    if (canvas.id === "bodyChart") {
+      seriesList.forEach((s) => {
+        if (String(s.label).indexOf("体脂肪率") === 0) s.axis = "right";
+      });
+    }
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
     const w = canvas.clientWidth || Math.max(240, Math.min(600, window.innerWidth - 28) - 28);
     const h = canvas.clientHeight || 190;
@@ -315,4 +319,45 @@ body{padding-bottom:80px;min-height:calc(100vh + 2px);}
     compactMyList();
   };
   compactMyList();
+    // ===== ① メモの編集画面:内容欄を、フッターの上まで広げる =====
+  function fitMemoEdit() {
+    const ta = document.getElementById("memoEditBody");
+    const edit = document.getElementById("memoEdit");
+    const nav = document.querySelector(".bottom-nav");
+    if (!ta || !edit || !nav || edit.classList.contains("hidden")) return;
+    const deficit = nav.getBoundingClientRect().top - 10 - edit.getBoundingClientRect().bottom;
+    ta.style.height = Math.max(120, ta.offsetHeight + deficit) + "px";
+  }
+  const memoEditBox = document.getElementById("memoEdit");
+  if (memoEditBox) {
+    new MutationObserver(() => requestAnimationFrame(fitMemoEdit)).observe(memoEditBox, {
+      attributes: true,
+      attributeFilter: ["class"]
+    });
+  }
+  window.addEventListener("resize", () => requestAnimationFrame(fitMemoEdit));
+
+  // ===== ② ホームのText欄:ヘッダーの下〜フッターの上いっぱいに広げる =====
+  const TEXT_GAP = 30; // 数字を大きくすると、Text欄が低くなる
+  function fitHomeText() {
+    const ta = els.formattedOutput;
+    const home = document.getElementById("page-home");
+    const header = document.querySelector(".header-bar");
+    const nav = document.querySelector(".bottom-nav");
+    if (!ta || !home || !header || !nav || !home.classList.contains("active")) return;
+    const card = ta.closest(".card");
+    const avail = nav.getBoundingClientRect().top - header.getBoundingClientRect().bottom - TEXT_GAP;
+    const delta = avail - card.getBoundingClientRect().height;
+    ta.style.minHeight = "0";
+    ta.style.height = Math.max(200, ta.offsetHeight + delta) + "px";
+  }
+  const _switchPage = switchPage;
+  switchPage = function (name) {
+    _switchPage(name);
+    if (name === "home") requestAnimationFrame(fitHomeText);
+  };
+  window.addEventListener("resize", () => requestAnimationFrame(fitHomeText));
+  window.addEventListener("orientationchange", () => setTimeout(fitHomeText, 300));
+  setTimeout(fitHomeText, 300);
+
 })();
